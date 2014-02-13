@@ -1,4 +1,4 @@
-// Provides information about the current app deployed on Cloud Foundry, including any bound service(s).
+// Package cfenv provides information about the current app deployed on Cloud Foundry, including any bound service(s).
 package cfenv
 
 import (
@@ -6,7 +6,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-// Create a new App with the provided environment.
+// New creates a new App with the provided environment.
 func New(env map[string]string) *App {
 	var app App
 	appVar := env["VCAP_APPLICATION"]
@@ -36,7 +36,7 @@ func New(env map[string]string) *App {
 	return &app
 }
 
-// Create a new App with the current environment.
+// Current creates a new App with the current environment.
 func Current() *App {
 	return New(CurrentEnv())
 }

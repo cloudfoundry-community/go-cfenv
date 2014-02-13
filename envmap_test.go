@@ -16,10 +16,22 @@ var _ = Describe("Envmap", func() {
 
 			It("Should split variables into keys and values", func() {
 				vars := Variables()
+				valueCount := 0
 				for k, v := range vars {
+					// Key should never be empty
 					Ω(k).ShouldNot(BeEmpty())
-					Ω(v).ShouldNot(BeEmpty())
+
+					// Key should never have equals
+					Ω(k).ShouldNot(ContainSubstring("="))
+
+					// Value may be empty, but let's track non-empty values
+					if v != "" {
+						valueCount++
+					}
 				}
+
+				// Ensure we get at least one value from the environment
+				Ω(valueCount).Should(BeNumerically(">", 0))
 			})
 		})
 	})

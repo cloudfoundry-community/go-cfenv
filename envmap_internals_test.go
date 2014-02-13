@@ -31,5 +31,11 @@ var _ = Describe("Envmap", func() {
 				test("TEST=VAL", "TEST", "VAL")
 			})
 		})
+
+		Context("With env var split by equals with key and value containing equals", func() {
+			It("Should have non-empty key and value", func() {
+				test("TEST=VAL=OTHERVAL", "TEST", "VAL=OTHERVAL")
+			})
+		})
 	})
 })

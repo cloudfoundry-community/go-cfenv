@@ -12,7 +12,7 @@ cfenv is a library to assist you in writing Go apps that run on [Cloud Foundry](
 
 ### Usage
 
-`go
+```go
 package main
 
 import (
@@ -34,4 +34,4 @@ func main() {
 	fmt.Printf("appEnv.User")
 	fmt.Printf("appEnv.Services")
 }
-`
+```

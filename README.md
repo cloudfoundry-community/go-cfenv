@@ -25,7 +25,7 @@ import (
 func main() {
 	appEnv := cfenv.Current()
 	
-	fmt.Println("ID:", appEnv.Id)
+	fmt.Println("ID:", appEnv.ID)
 	fmt.Println("Index:", appEnv.Index)
 	fmt.Println("Name:", appEnv.Name)
 	fmt.Println("Host:", appEnv.Host)
@@ -39,3 +39,7 @@ func main() {
 	fmt.Println("Services:", appEnv.Services)
 }
 ```
+
+### Contributing
+
+Pull requests welcomed. Please ensure you make your changes in a branch off of the `develop` branch, not the `master` branch.

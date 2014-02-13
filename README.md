@@ -25,7 +25,7 @@ import (
 func main() {
 	appEnv := cfenv.Current()
 	
-	fmt.Println("Id:", appEnv.Id)
+	fmt.Println("ID:", appEnv.Id)
 	fmt.Println("Index:", appEnv.Index)
 	fmt.Println("Name:", appEnv.Name)
 	fmt.Println("Host:", appEnv.Host)

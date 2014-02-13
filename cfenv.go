@@ -1,11 +1,12 @@
+// Provides information about the current app deployed on Cloud Foundry, including any bound service(s).
 package cfenv
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/mitchellh/mapstructure"
 )
 
+// Create a new App with the provided environment.
 func New(env map[string]string) *App {
 	var app App
 	appVar := env["VCAP_APPLICATION"]
@@ -25,20 +26,17 @@ func New(env map[string]string) *App {
 
 	services := make(map[string][]Service)
 	for k, v := range rawServices {
-		fmt.Println(v)
 		var serviceInstances []Service
 		if err := mapstructure.Decode(v, &serviceInstances); err != nil {
 			// panic(err)
 		}
-		fmt.Println(serviceInstances[0].Name)
-		fmt.Println(serviceInstances[0].Label)
-		fmt.Println(serviceInstances[0].Plan)
 		services[k] = serviceInstances
 	}
 	app.Services = services
 	return &app
 }
 
+// Create a new App with the current environment.
 func Current() *App {
 	return New(CurrentEnv())
 }

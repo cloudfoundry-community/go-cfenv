@@ -23,7 +23,7 @@ var _ = Describe("Application", func() {
 				cfenv := New(testEnv)
 				Ω(cfenv).ShouldNot(BeNil())
 
-				Ω(cfenv.Id).Should(BeEquivalentTo("451f045fd16427bb99c895a2649b7b2a"))
+				Ω(cfenv.ID).Should(BeEquivalentTo("451f045fd16427bb99c895a2649b7b2a"))
 				Ω(cfenv.Index).Should(BeEquivalentTo(0))
 				Ω(cfenv.Name).Should(BeEquivalentTo("styx-james"))
 				Ω(cfenv.Host).Should(BeEquivalentTo("0.0.0.0"))

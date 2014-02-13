@@ -1,14 +1,8 @@
 package cfenv
 
 import (
-	"os"
 	"strings"
 )
-
-func Variables() map[string]string {
-	vars := mapEnv(os.Environ(), splitEnv())
-	return vars
-}
 
 func splitEnv() func(item string) (key, val string) {
 	return func(item string) (key, val string) {

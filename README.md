@@ -8,7 +8,6 @@ cfenv is a library to assist you in writing Go apps that run on [Cloud Foundry](
 
 * [![Build Status - Master](https://travis-ci.org/joefitzgerald/cfenv.png?branch=master)](https://travis-ci.org/joefitzgerald/cfenv) `Master`
 * [![Build Status - Develop](https://travis-ci.org/joefitzgerald/cfenv.png?branch=develop)](https://travis-ci.org/joefitzgerald/cfenv) `Develop`
-* [![Build Status - Develop](https://travis-ci.org/joefitzgerald/cfenv.png?branch=develop)](https://travis-ci.org/joefitzgerald/cfenv)
 
 ### Usage
 

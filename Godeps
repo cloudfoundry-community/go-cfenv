@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/joefitzgerald/cfenv",
-	"GoVersion": "go1.2",
+	"GoVersion": "go1.2.1",
 	"Deps": [
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",

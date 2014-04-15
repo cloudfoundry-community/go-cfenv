@@ -1,7 +1,7 @@
 package cfenv_test
 
 import (
-	. "github.com/joefitzgerald/cfenv"
+	. "github.com/mstine/cfenv"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -15,7 +15,7 @@ var _ = Describe("Application", func() {
 			`PWD=/home/vcap`,
 			`TMPDIR=/home/vcap/tmp`,
 			`USER=vcap`,
-			`VCAP_SERVICES={"elephantsql-dev":[{"name":"elephantsql-dev-c6c60","label":"elephantsql-dev","plan":"turtle","credentials":{"uri":"postgres://seilbmbd:PHxTPJSbkcDakfK4cYwXHiIX9Q8p5Bxn@babar.elephantsql.com:5432/seilbmbd"}}],"sendgrid":[{"name":"mysendgrid","label":"sendgrid","plan":"free","credentials":{"hostname":"smtp.sendgrid.net","username":"QvsXMbJ3rK","password":"HCHMOYluTv"}}]}`,
+			`VCAP_SERVICES={"elephantsql-dev":[{"name":"elephantsql-dev-c6c60","label":"elephantsql-dev","tags":["New Product","relational","Data Store","postgresql"],"plan":"turtle","credentials":{"uri":"postgres://seilbmbd:PHxTPJSbkcDakfK4cYwXHiIX9Q8p5Bxn@babar.elephantsql.com:5432/seilbmbd"}}],"sendgrid":[{"name":"mysendgrid","label":"sendgrid","tags":["smtp","Email"],"plan":"free","credentials":{"hostname":"smtp.sendgrid.net","username":"QvsXMbJ3rK","password":"HCHMOYluTv"}}]}`,
 		}
 		testEnv := Env(env)
 		Context("With valid application variable ", func() {
@@ -38,12 +38,15 @@ var _ = Describe("Application", func() {
 				Ω(len(cfenv.Services)).Should(BeEquivalentTo(2))
 				Ω(cfenv.Services["elephantsql-dev"][0].Name).Should(BeEquivalentTo("elephantsql-dev-c6c60"))
 				Ω(cfenv.Services["elephantsql-dev"][0].Label).Should(BeEquivalentTo("elephantsql-dev"))
+				Ω(cfenv.Services["elephantsql-dev"][0].Tags).Should(BeEquivalentTo([]string{"New Product", "relational", "Data Store", "postgresql"}))
 				Ω(cfenv.Services["elephantsql-dev"][0].Plan).Should(BeEquivalentTo("turtle"))
 				Ω(len(cfenv.Services["elephantsql-dev"][0].Credentials)).Should(BeEquivalentTo(1))
 				Ω(cfenv.Services["elephantsql-dev"][0].Credentials["uri"]).Should(BeEquivalentTo("postgres://seilbmbd:PHxTPJSbkcDakfK4cYwXHiIX9Q8p5Bxn@babar.elephantsql.com:5432/seilbmbd"))
 
 				Ω(cfenv.Services["sendgrid"][0].Name).Should(BeEquivalentTo("mysendgrid"))
 				Ω(cfenv.Services["sendgrid"][0].Label).Should(BeEquivalentTo("sendgrid"))
+				Ω(cfenv.Services["sendgrid"][0].Tags).Should(BeEquivalentTo([]string{"smtp", "Email"}))
+
 				Ω(cfenv.Services["sendgrid"][0].Plan).Should(BeEquivalentTo("free"))
 				Ω(len(cfenv.Services["sendgrid"][0].Credentials)).Should(BeEquivalentTo(3))
 				Ω(cfenv.Services["sendgrid"][0].Credentials["hostname"]).Should(BeEquivalentTo("smtp.sendgrid.net"))

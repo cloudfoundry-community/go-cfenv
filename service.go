@@ -5,6 +5,7 @@ package cfenv
 type Service struct {
 	Name        string            // name of the service
 	Label       string            // label of the service
+	Tags        []string          // tags for the service
 	Plan        string            // plan of the service
 	Credentials map[string]string // credentials for the service
 }

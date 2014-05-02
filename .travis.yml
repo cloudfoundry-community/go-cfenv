@@ -12,7 +12,7 @@ before_install:
 script:
   - godep go test -race ./...
   - godep go test -cover ./...
-  
+
 matrix:
     allow_failures:
         - go: tip

@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/joefitzgerald/cfenv",
+	"ImportPath": "github.com/cloudfoundry-community/go-cfenv",
 	"GoVersion": "go1.2.1",
 	"Deps": [
 		{

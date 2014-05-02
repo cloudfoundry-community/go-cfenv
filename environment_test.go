@@ -1,7 +1,7 @@
 package cfenv_test
 
 import (
-	. "github.com/joefitzgerald/cfenv"
+	. "github.com/cloudfoundry-community/go-cfenv"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

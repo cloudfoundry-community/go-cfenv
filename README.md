@@ -1,30 +1,30 @@
 # Go Cloud Foundry Environment Library (cfenv)
 
-### Overview 
+### Overview
 
-[![GoDoc](https://godoc.org/github.com/joefitzgerald/cfenv?status.png)](https://godoc.org/github.com/joefitzgerald/cfenv)
+[![GoDoc](https://godoc.org/github.com/cloudfoundry-community/go-cfenv?status.png)](https://godoc.org/github.com/cloudfoundry-community/go-cfenv)
 
 `cfenv` is a library to assist you in writing Go apps that run on [Cloud Foundry](http://cloudfoundry.org). It provides convenience functions and structures that map to Cloud Foundry environment variable primitives (http://docs.cloudfoundry.com/docs/using/deploying-apps/environment-variable.html).
 
 ### Build Status
 
-* [![Build Status - Master](https://travis-ci.org/joefitzgerald/cfenv.png?branch=master)](https://travis-ci.org/joefitzgerald/cfenv) `Master`
-* [![Build Status - Develop](https://travis-ci.org/joefitzgerald/cfenv.png?branch=develop)](https://travis-ci.org/joefitzgerald/cfenv) `Develop`
+* [![Build Status - Master](https://travis-ci.org/cloudfoundry-community/go-cfenv.svg?branch=master)](https://travis-ci.org/cloudfoundry-community/go-cfenv) `Master`
+* [![Build Status - Develop](https://travis-ci.org/cloudfoundry-community/go-cfenv.svg?branch=develop)](https://travis-ci.org/cloudfoundry-community/go-cfenv) `Develop`
 
 ### Usage
 
-`go get github.com/joefitzgerald/cfenv`
+`go get github.com/cloudfoundry-community/go-cfenv`
 
 ```go
 package main
 
 import (
-	"github.com/joefitzgerald/cfenv"
+	"github.com/cloudfoundry-community/go-cfenv"
 )
 
 func main() {
 	appEnv := cfenv.Current()
-	
+
 	fmt.Println("ID:", appEnv.ID)
 	fmt.Println("Index:", appEnv.Index)
 	fmt.Println("Name:", appEnv.Name)

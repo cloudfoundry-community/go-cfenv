@@ -26,7 +26,7 @@ type Service struct {
 // label.
 type Services map[string][]Service
 
-// WithTag finds services with the specified tag
+// WithTag finds services with the specified tag.
 func (s *Services) WithTag(tag string) ([]Service, error) {
 	result := []Service{}
 	for _, services := range *s {
@@ -47,7 +47,7 @@ func (s *Services) WithTag(tag string) ([]Service, error) {
 	return nil, fmt.Errorf("no services with tag %s", tag)
 }
 
-// WithLabel finds the service with the specified label
+// WithLabel finds the service with the specified label.
 func (s *Services) WithLabel(label string) ([]Service, error) {
 	for l, services := range *s {
 		if strings.EqualFold(label, l) {
@@ -58,7 +58,7 @@ func (s *Services) WithLabel(label string) ([]Service, error) {
 	return nil, fmt.Errorf("no services with label %s", label)
 }
 
-// WithName finds the service with the specified name
+// WithName finds the service with the specified name.
 func (s *Services) WithName(name string) (*Service, error) {
 	for _, services := range *s {
 		for i := range services {

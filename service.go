@@ -22,26 +22,26 @@ type Service struct {
 	Credentials map[string]string // credentials for the service
 }
 
-// Services is a map associating service labels and an array of services with
-// that label.
+// Services is an association of service labels to a slice of services with that
+// label.
 type Services map[string][]Service
 
-// WithTag find services with the specified tag
+// WithTag finds services with the specified tag
 func (s *Services) WithTag(tag string) ([]Service, error) {
-	r := []Service{}
-	for _, v := range *s {
-		for i := range v {
-			service := v[i]
+	result := []Service{}
+	for _, services := range *s {
+		for i := range services {
+			service := services[i]
 			for t := range service.Tags {
 				if strings.EqualFold(tag, service.Tags[t]) {
-					r = append(r, service)
+					result = append(result, service)
 				}
 			}
 		}
 	}
 
-	if len(r) > 0 {
-		return r, nil
+	if len(result) > 0 {
+		return result, nil
 	}
 
 	return nil, fmt.Errorf("no services with tag %s", tag)
@@ -49,9 +49,9 @@ func (s *Services) WithTag(tag string) ([]Service, error) {
 
 // WithLabel finds the service with the specified label
 func (s *Services) WithLabel(label string) ([]Service, error) {
-	for k, v := range *s {
-		if strings.EqualFold(label, k) {
-			return v, nil
+	for l, services := range *s {
+		if strings.EqualFold(label, l) {
+			return services, nil
 		}
 	}
 
@@ -60,9 +60,9 @@ func (s *Services) WithLabel(label string) ([]Service, error) {
 
 // WithName finds the service with the specified name
 func (s *Services) WithName(name string) (*Service, error) {
-	for _, v := range *s {
-		for i := range v {
-			service := v[i]
+	for _, services := range *s {
+		for i := range services {
+			service := services[i]
 			if strings.EqualFold(name, service.Name) {
 				return &service, nil
 			}

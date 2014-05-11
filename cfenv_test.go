@@ -31,7 +31,8 @@ var _ = Describe("Cfenv", func() {
 		Context("With valid environment", func() {
 			It("Should deserialize correctly", func() {
 				testEnv := Env(validEnv)
-				cfenv := New(testEnv)
+				cfenv, err := New(testEnv)
+				Ω(err).Should(BeNil())
 				Ω(cfenv).ShouldNot(BeNil())
 
 				Ω(cfenv.ID).Should(BeEquivalentTo("451f045fd16427bb99c895a2649b7b2a"))
@@ -81,7 +82,8 @@ var _ = Describe("Cfenv", func() {
 		Context("With invalid environment", func() {
 			It("Should deserialize correctly, with missing values", func() {
 				testEnv := Env(invalidEnv)
-				cfenv := New(testEnv)
+				cfenv, err := New(testEnv)
+				Ω(err).Should(BeNil())
 				Ω(cfenv).ShouldNot(BeNil())
 
 				Ω(cfenv.ID).Should(BeEquivalentTo(""))

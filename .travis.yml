@@ -1,12 +1,11 @@
 language: go
 
 go:
-    - 1.2
-    - tip
+    - 1.4
 
 before_install:
-  - go get code.google.com/p/go.tools/cmd/cover
-  - go get github.com/kr/godep
+  - go get -u golang.org/x/tools/cmd/cover
+  - go get -u github.com/kr/godep
   - export PATH=$HOME/gopath/bin:$PATH
 
 script:

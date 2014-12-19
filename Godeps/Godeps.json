@@ -1,0 +1,18 @@
+{
+	"ImportPath": "github.com/cloudfoundry-community/go-cfenv",
+	"GoVersion": "go1.4",
+	"Deps": [
+		{
+			"ImportPath": "github.com/mitchellh/mapstructure",
+			"Rev": "740c764bc6149d3f1806231418adb9f52c11bcbf"
+		},
+		{
+			"ImportPath": "github.com/onsi/ginkgo",
+			"Rev": "3bafcec253f65271566c4d05cb3e3f3b1a6cb2d1"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega",
+			"Rev": "930b4522e0d3027320b5d56f8a375796f2e376e5"
+		}
+	]
+}

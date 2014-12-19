@@ -1,8 +1,6 @@
 package cfenv
 
-import (
-	"strings"
-)
+import "strings"
 
 func splitEnv() func(item string) (key, val string) {
 	return func(item string) (key, val string) {

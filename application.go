@@ -8,7 +8,7 @@ type App struct {
 	Host           string   `json:"host"`             // host of the app
 	Port           int      `json:"port"`             // port of the app
 	Version        string   `json:"version"`          // version of the app
-	ApplicationUri []string `json:"application_uris"` // application uri of the app
+	ApplicationURI []string `json:"application_uris"` // application uri of the app
 	Home           string   // root folder for the deployed app
 	MemoryLimit    string   // maximum amount of memory that each instance of the application can consume
 	WorkingDir     string   // present working directory, where the buildpack that processed the application ran

@@ -28,7 +28,7 @@ func New(env map[string]string) (*App, error) {
 	services := make(map[string][]Service)
 	for k, v := range rawServices {
 		var serviceInstances []Service
-		if err := mapstructure.Decode(v, &serviceInstances); err != nil {
+		if err := mapstructure.WeakDecode(v, &serviceInstances); err != nil {
 			return nil, err
 		}
 		services[k] = serviceInstances

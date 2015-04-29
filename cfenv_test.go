@@ -2,6 +2,7 @@ package cfenv_test
 
 import (
 	. "github.com/cloudfoundry-community/go-cfenv"
+	"github.com/mitchellh/mapstructure"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -26,6 +27,11 @@ var _ = Describe("Cfenv", func() {
 			`TMPDIR=/home/vcap/tmp`,
 			`USER=vcap`,
 			`VCAP_SERVICES={"elephantsql-dev":[{"name":"elephantsql-dev-c6c60","label":"elephantsql-dev","tags":["New Product","relational","Data Store","postgresql"],"plan":"turtle","credentials":{"uri":"postgres://seilbmbd:PHxTPJSbkcDakfK4cYwXHiIX9Q8p5Bxn@babar.elephantsql.com:5432/seilbmbd"}}],"cloudantNoSQLDB": [{ "name": "my_cloudant", "label": "cloudantNoSQLDB", "plan": "Shared", "credentials": { "username": "18675309-0000-4aaa-bbbb-999999999-bluemix", "password": "18675309deadbeefaaaabbbbccccddddeeeeffff000099999999999999999999", "host": "01234567-9999-4999-aaaa-abcdefabcdef-bluemix.cloudant.com", "port": 443, "url": "https://18675309-0000-4aaa-bbbb-999999999-bluemix:18675309deadbeefaaaabbbbccccddddeeeeffff000099999999999999999999@01234567-9999-4999-aaaa-abcdefabcdef-bluemix.cloudant.com"}}],"sendgrid":[{"name":"mysendgrid","label":"sendgrid","tags":["smtp","Email"],"plan":"free","credentials":{"hostname":"smtp.sendgrid.net","username":"QvsXMbJ3rK","password":"HCHMOYluTv"}}]}`,
+		}
+
+		envWithArrayCredentials := []string{
+			`VCAP_APPLICATION={}`,
+			`VCAP_SERVICES={"p-kafka": [{"credentials": { "kafka" : { "port": 9092, "node_ips": ["10.244.9.2", "10.244.9.6", "10.244.9.10"]}}}]}`,
 		}
 
 		invalidEnv := []string{
@@ -89,6 +95,22 @@ var _ = Describe("Cfenv", func() {
 			})
 		})
 
+		Context("With valid environment with a service with credentials that are an array", func() {
+			It("should deserialize correctly", func() {
+				testEnv := Env(envWithArrayCredentials)
+				cfenv, err := New(testEnv)
+				Ω(err).Should(BeNil())
+				Ω(cfenv).ShouldNot(BeNil())
+
+				credential := map[string]interface{}{}
+				mapstructure.Decode(cfenv.Services["p-kafka"][0].Credentials["kafka"], &credential)
+
+				Ω(len(cfenv.Services["p-kafka"][0].Credentials)).Should(BeEquivalentTo(1))
+				Ω(credential["node_ips"]).Should(BeEquivalentTo([]interface{}{"10.244.9.2", "10.244.9.6", "10.244.9.10"}))
+				Ω(credential["port"]).Should(BeEquivalentTo(9092))
+			})
+		})
+
 		Context("With valid environment with a service with credentials with a port that is an int", func() {
 			It("Should deserialize correctly", func() {
 				testEnv := Env(envWithIntCredentials)
@@ -121,7 +143,7 @@ var _ = Describe("Cfenv", func() {
 				Ω(cfenv.Services["cloudantNoSQLDB"][0].Label).Should(BeEquivalentTo("cloudantNoSQLDB"))
 				Ω(cfenv.Services["cloudantNoSQLDB"][0].Plan).Should(BeEquivalentTo("Shared"))
 				Ω(len(cfenv.Services["cloudantNoSQLDB"][0].Credentials)).Should(BeEquivalentTo(5))
-				Ω(cfenv.Services["cloudantNoSQLDB"][0].Credentials["port"]).Should(BeEquivalentTo("443"))
+				Ω(cfenv.Services["cloudantNoSQLDB"][0].Credentials["port"]).Should(BeEquivalentTo(443))
 
 				Ω(cfenv.Services["sendgrid"][0].Name).Should(BeEquivalentTo("mysendgrid"))
 				Ω(cfenv.Services["sendgrid"][0].Label).Should(BeEquivalentTo("sendgrid"))

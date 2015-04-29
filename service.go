@@ -15,11 +15,11 @@ import (
 // service object contains a child object for each service instance of that
 // service that is bound to the application.
 type Service struct {
-	Name        string            // name of the service
-	Label       string            // label of the service
-	Tags        []string          // tags for the service
-	Plan        string            // plan of the service
-	Credentials map[string]string // credentials for the service
+	Name        string                 // name of the service
+	Label       string                 // label of the service
+	Tags        []string               // tags for the service
+	Plan        string                 // plan of the service
+	Credentials map[string]interface{} // credentials for the service
 }
 
 // Services is an association of service labels to a slice of services with that

@@ -3,6 +3,7 @@ package cfenv
 import (
 	"fmt"
 	"strings"
+	"regexp"
 )
 
 // Service describes a bound service. For bindable services Cloud Foundry will
@@ -26,15 +27,16 @@ type Service struct {
 // label.
 type Services map[string][]Service
 
-// WithTag finds services with the specified tag.
+// WithTag finds services with the specified tag (can be a regex).
 func (s *Services) WithTag(tag string) ([]Service, error) {
 	result := []Service{}
 	for _, services := range *s {
 		for i := range services {
 			service := services[i]
-			for t := range service.Tags {
-				if strings.EqualFold(tag, service.Tags[t]) {
+			for _, t := range service.Tags {
+				if s.match(tag, t) {
 					result = append(result, service)
+					break
 				}
 			}
 		}
@@ -57,13 +59,36 @@ func (s *Services) WithLabel(label string) ([]Service, error) {
 
 	return nil, fmt.Errorf("no services with label %s", label)
 }
-
-// WithName finds the service with the specified name.
-func (s *Services) WithName(name string) (*Service, error) {
+func (s *Services) match(matcher, content string) bool {
+	regex, err := regexp.Compile("(?i)^" + matcher + "$")
+	if err != nil {
+		return false
+	}
+	return regex.MatchString(content)
+}
+// WithName finds the service with the specified name (can be a regex).
+func (s *Services) WithName(name string) ([]Service, error) {
+	result := []Service{}
 	for _, services := range *s {
 		for i := range services {
 			service := services[i]
-			if strings.EqualFold(name, service.Name) {
+			if s.match(name, service.Name) {
+				result = append(result, service)
+			}
+		}
+	}
+	if len(result) > 0 {
+		return result, nil
+	}
+	return nil, fmt.Errorf("no service with name %s", name)
+}
+
+// WithName finds the service with the specified name (can be a regex).
+func (s *Services) FirstWithName(name string) (*Service, error) {
+	for _, services := range *s {
+		for i := range services {
+			service := services[i]
+			if s.match(name, service.Name) {
 				return &service, nil
 			}
 		}

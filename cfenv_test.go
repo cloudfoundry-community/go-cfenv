@@ -79,7 +79,7 @@ var _ = Describe("Cfenv", func() {
 				Ω(cfenv.Services["sendgrid"][0].Credentials["username"]).Should(BeEquivalentTo("QvsXMbJ3rK"))
 				Ω(cfenv.Services["sendgrid"][0].Credentials["password"]).Should(BeEquivalentTo("HCHMOYluTv"))
 
-				name, err := cfenv.Services.WithName("elephantsql-dev-c6c60")
+				name, err := cfenv.Services.FirstWithName("elephantsql-dev-c6c60")
 				Ω(name.Name).Should(BeEquivalentTo("elephantsql-dev-c6c60"))
 				Ω(err).Should(BeNil())
 
@@ -92,6 +92,29 @@ var _ = Describe("Cfenv", func() {
 				Ω(len(label)).Should(BeEquivalentTo(1))
 				Ω(label[0].Label).Should(BeEquivalentTo("elephantsql-dev"))
 				Ω(err).Should(BeNil())
+
+				names, err := cfenv.Services.WithName(".*(sql|mysend).*")
+				Ω(len(names)).Should(BeEquivalentTo(2))
+				Ω(err).Should(BeNil())
+				isValidNames := true
+				for _, service := range names {
+					if service.Name != "mysendgrid" && service.Name != "elephantsql-dev-c6c60" {
+						isValidNames = false
+					}
+				}
+				Ω(isValidNames).Should(BeTrue(), "Not valid names when finding by regex")
+
+				tags, err := cfenv.Services.WithTag(".*s.*")
+				Ω(len(tags)).Should(BeEquivalentTo(2))
+				Ω(err).Should(BeNil())
+				isValidTags := true
+				for _, service := range tags {
+					if service.Name != "mysendgrid" && service.Name != "elephantsql-dev-c6c60" {
+						isValidTags = false
+					}
+				}
+				Ω(isValidTags).Should(BeTrue(), "Not valid tags when finding by regex")
+
 			})
 		})
 
@@ -154,7 +177,7 @@ var _ = Describe("Cfenv", func() {
 				Ω(cfenv.Services["sendgrid"][0].Credentials["username"]).Should(BeEquivalentTo("QvsXMbJ3rK"))
 				Ω(cfenv.Services["sendgrid"][0].Credentials["password"]).Should(BeEquivalentTo("HCHMOYluTv"))
 
-				name, err := cfenv.Services.WithName("elephantsql-dev-c6c60")
+				name, err := cfenv.Services.FirstWithName("elephantsql-dev-c6c60")
 				Ω(name.Name).Should(BeEquivalentTo("elephantsql-dev-c6c60"))
 				Ω(err).Should(BeNil())
 
@@ -167,6 +190,29 @@ var _ = Describe("Cfenv", func() {
 				Ω(len(label)).Should(BeEquivalentTo(1))
 				Ω(label[0].Label).Should(BeEquivalentTo("elephantsql-dev"))
 				Ω(err).Should(BeNil())
+
+				names, err := cfenv.Services.WithName(".*(sql|my_cloud).*")
+				Ω(len(names)).Should(BeEquivalentTo(2))
+				Ω(err).Should(BeNil())
+				isValidNames := true
+				for _, service := range names {
+					if service.Name != "my_cloudant" && service.Name != "elephantsql-dev-c6c60" {
+						isValidNames = false
+					}
+				}
+				Ω(isValidNames).Should(BeTrue(), "Not valid names when finding by regex")
+
+				tags, err := cfenv.Services.WithTag(".*s.*")
+				Ω(len(tags)).Should(BeEquivalentTo(2))
+				Ω(err).Should(BeNil())
+				isValidTags := true
+				for _, service := range tags {
+					if service.Name != "mysendgrid" && service.Name != "elephantsql-dev-c6c60" {
+						isValidTags = false
+					}
+				}
+				Ω(isValidTags).Should(BeTrue(), "Not valid tags when finding by regex")
+
 			})
 		})
 

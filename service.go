@@ -27,14 +27,14 @@ type Service struct {
 // label.
 type Services map[string][]Service
 
-// WithTag finds services with the specified tag (can be a regex).
+// WithTag finds services with the specified tag.
 func (s *Services) WithTag(tag string) ([]Service, error) {
 	result := []Service{}
 	for _, services := range *s {
 		for i := range services {
 			service := services[i]
 			for _, t := range service.Tags {
-				if s.match(tag, t) {
+				if strings.EqualFold(tag, t) {
 					result = append(result, service)
 					break
 				}
@@ -47,6 +47,27 @@ func (s *Services) WithTag(tag string) ([]Service, error) {
 	}
 
 	return nil, fmt.Errorf("no services with tag %s", tag)
+}
+// WithTag finds services with a tag pattern.
+func (s *Services) WithTagUsingPattern(tagPattern string) ([]Service, error) {
+	result := []Service{}
+	for _, services := range *s {
+		for i := range services {
+			service := services[i]
+			for _, t := range service.Tags {
+				if s.match(tagPattern, t) {
+					result = append(result, service)
+					break
+				}
+			}
+		}
+	}
+
+	if len(result) > 0 {
+		return result, nil
+	}
+
+	return nil, fmt.Errorf("no services with tag pattern %s", tagPattern)
 }
 
 // WithLabel finds the service with the specified label.
@@ -66,13 +87,14 @@ func (s *Services) match(matcher, content string) bool {
 	}
 	return regex.MatchString(content)
 }
-// WithName finds the service with the specified name (can be a regex).
-func (s *Services) WithName(name string) ([]Service, error) {
+
+// WithName finds the service with a name pattern.
+func (s *Services) WithNameUsingPattern(namePattern string) ([]Service, error) {
 	result := []Service{}
 	for _, services := range *s {
 		for i := range services {
 			service := services[i]
-			if s.match(name, service.Name) {
+			if s.match(namePattern, service.Name) {
 				result = append(result, service)
 			}
 		}
@@ -80,15 +102,15 @@ func (s *Services) WithName(name string) ([]Service, error) {
 	if len(result) > 0 {
 		return result, nil
 	}
-	return nil, fmt.Errorf("no service with name %s", name)
+	return nil, fmt.Errorf("no service with name pattern %s", namePattern)
 }
 
-// WithName finds the service with the specified name (can be a regex).
-func (s *Services) FirstWithName(name string) (*Service, error) {
+// WithName finds the service with the specified name.
+func (s *Services) WithName(name string) (*Service, error) {
 	for _, services := range *s {
 		for i := range services {
 			service := services[i]
-			if s.match(name, service.Name) {
+			if strings.EqualFold(name, service.Name) {
 				return &service, nil
 			}
 		}

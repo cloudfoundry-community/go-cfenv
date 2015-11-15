@@ -79,7 +79,7 @@ var _ = Describe("Cfenv", func() {
 				Ω(cfenv.Services["sendgrid"][0].Credentials["username"]).Should(BeEquivalentTo("QvsXMbJ3rK"))
 				Ω(cfenv.Services["sendgrid"][0].Credentials["password"]).Should(BeEquivalentTo("HCHMOYluTv"))
 
-				name, err := cfenv.Services.FirstWithName("elephantsql-dev-c6c60")
+				name, err := cfenv.Services.WithName("elephantsql-dev-c6c60")
 				Ω(name.Name).Should(BeEquivalentTo("elephantsql-dev-c6c60"))
 				Ω(err).Should(BeNil())
 
@@ -93,7 +93,7 @@ var _ = Describe("Cfenv", func() {
 				Ω(label[0].Label).Should(BeEquivalentTo("elephantsql-dev"))
 				Ω(err).Should(BeNil())
 
-				names, err := cfenv.Services.WithName(".*(sql|mysend).*")
+				names, err := cfenv.Services.WithNameUsingPattern(".*(sql|mysend).*")
 				Ω(len(names)).Should(BeEquivalentTo(2))
 				Ω(err).Should(BeNil())
 				isValidNames := true
@@ -104,7 +104,7 @@ var _ = Describe("Cfenv", func() {
 				}
 				Ω(isValidNames).Should(BeTrue(), "Not valid names when finding by regex")
 
-				tags, err := cfenv.Services.WithTag(".*s.*")
+				tags, err := cfenv.Services.WithTagUsingPattern(".*s.*")
 				Ω(len(tags)).Should(BeEquivalentTo(2))
 				Ω(err).Should(BeNil())
 				isValidTags := true
@@ -177,7 +177,7 @@ var _ = Describe("Cfenv", func() {
 				Ω(cfenv.Services["sendgrid"][0].Credentials["username"]).Should(BeEquivalentTo("QvsXMbJ3rK"))
 				Ω(cfenv.Services["sendgrid"][0].Credentials["password"]).Should(BeEquivalentTo("HCHMOYluTv"))
 
-				name, err := cfenv.Services.FirstWithName("elephantsql-dev-c6c60")
+				name, err := cfenv.Services.WithName("elephantsql-dev-c6c60")
 				Ω(name.Name).Should(BeEquivalentTo("elephantsql-dev-c6c60"))
 				Ω(err).Should(BeNil())
 
@@ -191,7 +191,7 @@ var _ = Describe("Cfenv", func() {
 				Ω(label[0].Label).Should(BeEquivalentTo("elephantsql-dev"))
 				Ω(err).Should(BeNil())
 
-				names, err := cfenv.Services.WithName(".*(sql|my_cloud).*")
+				names, err := cfenv.Services.WithNameUsingPattern(".*(sql|my_cloud).*")
 				Ω(len(names)).Should(BeEquivalentTo(2))
 				Ω(err).Should(BeNil())
 				isValidNames := true
@@ -202,7 +202,7 @@ var _ = Describe("Cfenv", func() {
 				}
 				Ω(isValidNames).Should(BeTrue(), "Not valid names when finding by regex")
 
-				tags, err := cfenv.Services.WithTag(".*s.*")
+				tags, err := cfenv.Services.WithTagUsingPattern(".*s.*")
 				Ω(len(tags)).Should(BeEquivalentTo(2))
 				Ω(err).Should(BeNil())
 				isValidTags := true

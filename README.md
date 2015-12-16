@@ -23,7 +23,7 @@ import (
 )
 
 func main() {
-	appEnv := cfenv.Current()
+	appEnv, _ := cfenv.Current()
 
 	fmt.Println("ID:", appEnv.ID)
 	fmt.Println("Index:", appEnv.Index)

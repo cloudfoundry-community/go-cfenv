@@ -8,8 +8,7 @@
 
 ### Build Status
 
-* [![Build Status - Master](https://travis-ci.org/cloudfoundry-community/go-cfenv.svg?branch=master)](https://travis-ci.org/cloudfoundry-community/go-cfenv) `Master`
-* [![Build Status - Develop](https://travis-ci.org/cloudfoundry-community/go-cfenv.svg?branch=develop)](https://travis-ci.org/cloudfoundry-community/go-cfenv) `Develop`
+* [![Build Status - Master](https://travis-ci.org/cloudfoundry-community/go-cfenv.svg?branch=master)](https://travis-ci.org/cloudfoundry-community/go-cfenv)
 
 ### Usage
 
@@ -42,4 +41,4 @@ func main() {
 
 ### Contributing
 
-Pull requests welcomed. Please ensure you make your changes in a branch off of the `develop` branch, not the `master` branch.
+Pull requests welcomed.

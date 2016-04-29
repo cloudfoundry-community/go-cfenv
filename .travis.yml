@@ -1,16 +1,20 @@
 language: go
 
 go:
-    - 1.4
+    - 1.6
 
 before_install:
   - go get -u golang.org/x/tools/cmd/cover
-  - go get -u github.com/kr/godep
+  - go get -u github.com/Masterminds/glide
+  - go get -u github.com/alecthomas/gometalinter
   - export PATH=$HOME/gopath/bin:$PATH
+  - gometalinter --install
+  - glide install
 
 script:
-  - godep go test -race ./...
-  - godep go test -cover ./...
+  - gometalinter --vendor --disable-all --enable=vet --enable=vetshadow --enable=golint --enable=ineffassign --exclude=comment --tests $(glide novendor)
+  - go test -race $(glide novendor)
+  - go test -cover $(glide novendor)
 
 matrix:
     allow_failures:

@@ -9,7 +9,8 @@ before_install:
   - go get -u github.com/alecthomas/gometalinter
   - export PATH=$HOME/gopath/bin:$PATH
   - gometalinter --install
-  - glide install
+
+install: glide install
 
 script:
   - gometalinter --vendor --disable-all --enable=vet --enable=vetshadow --enable=golint --enable=ineffassign --exclude=comment --tests $(glide novendor)

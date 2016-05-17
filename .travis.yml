@@ -5,18 +5,14 @@ go:
 
 before_install:
   - go get -u golang.org/x/tools/cmd/cover
-  - go get -u github.com/Masterminds/glide
   - go get -u github.com/alecthomas/gometalinter
+  - go get -u github.com/mitchellh/mapstructure
+  - go get -u github.com/onsi/ginkgo
+  - go get -u github.com/onsi/gomega
   - export PATH=$HOME/gopath/bin:$PATH
   - gometalinter --install
 
-install: glide install
-
 script:
-  - gometalinter --vendor --disable-all --enable=vet --enable=vetshadow --enable=golint --enable=ineffassign --exclude=comment --tests $(glide novendor)
-  - go test -race $(glide novendor)
-  - go test -cover $(glide novendor)
-
-matrix:
-    allow_failures:
-        - go: tip
+  - gometalinter --disable-all --enable=vet --enable=vetshadow --enable=golint --enable=ineffassign --exclude=comment --tests .
+  - go test -race .
+  - go test -cover .

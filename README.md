@@ -1,14 +1,10 @@
-# Go Cloud Foundry Environment Package (cfenv)
+# Go CF Environment Package [![Build Status - Master](https://travis-ci.org/cloudfoundry-community/go-cfenv.svg?branch=master)](https://travis-ci.org/cloudfoundry-community/go-cfenv)
 
 ### Overview
 
 [![GoDoc](https://godoc.org/github.com/cloudfoundry-community/go-cfenv?status.png)](https://godoc.org/github.com/cloudfoundry-community/go-cfenv)
 
 `cfenv` is a package to assist you in writing Go apps that run on [Cloud Foundry](http://cloudfoundry.org). It provides convenience functions and structures that map to Cloud Foundry environment variable primitives (http://docs.cloudfoundry.com/docs/using/deploying-apps/environment-variable.html).
-
-### Build Status
-
-* [![Build Status - Master](https://travis-ci.org/cloudfoundry-community/go-cfenv.svg?branch=master)](https://travis-ci.org/cloudfoundry-community/go-cfenv)
 
 ### Usage
 

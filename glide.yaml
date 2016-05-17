@@ -1,8 +1,0 @@
-package: github.com/cloudfoundry-community/go-cfenv
-import:
-- package: github.com/mitchellh/mapstructure
-  version: 740c764bc6149d3f1806231418adb9f52c11bcbf
-- package: github.com/onsi/ginkgo
-  version: 3bafcec253f65271566c4d05cb3e3f3b1a6cb2d1
-- package: github.com/onsi/gomega
-  version: 930b4522e0d3027320b5d56f8a375796f2e376e5

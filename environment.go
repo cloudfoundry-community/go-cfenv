@@ -11,6 +11,6 @@ func CurrentEnv() map[string]string {
 
 // Env translates the provided environment to a map[string]string.
 func Env(env []string) map[string]string {
-	vars := mapEnv(env, splitEnv())
+	vars := mapEnv(env, splitEnv)
 	return vars
 }

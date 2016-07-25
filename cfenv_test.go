@@ -276,4 +276,32 @@ var _ = Describe("Cfenv", func() {
 			})
 		})
 	})
+
+	Describe("CredentialString", func() {
+		var service = Service{
+			Credentials: map[string]interface{}{
+				"string": "stringy-credential",
+				"int":    42,
+				"nested": map[string]string{
+					"key": "value",
+				},
+			},
+		}
+
+		It("returns the requested credential as a string when the credential is a string", func() {
+			result, ok := service.CredentialString("string")
+			Expect(ok).To(BeTrue())
+			Expect(result).To(Equal("stringy-credential"))
+		})
+
+		It("returns false when the credential is not a string", func() {
+			_, ok := service.CredentialString("int")
+			Expect(ok).To(BeFalse())
+		})
+
+		It("returns false when the credential is a nested thing", func() {
+			_, ok := service.CredentialString("nested")
+			Expect(ok).To(BeFalse())
+		})
+	})
 })

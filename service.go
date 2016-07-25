@@ -2,8 +2,8 @@ package cfenv
 
 import (
 	"fmt"
-	"strings"
 	"regexp"
+	"strings"
 )
 
 // Service describes a bound service. For bindable services Cloud Foundry will
@@ -21,6 +21,11 @@ type Service struct {
 	Tags        []string               // tags for the service
 	Plan        string                 // plan of the service
 	Credentials map[string]interface{} // credentials for the service
+}
+
+func (s *Service) CredentialString(key string) (string, bool) {
+	credential, ok := s.Credentials[key].(string)
+	return credential, ok
 }
 
 // Services is an association of service labels to a slice of services with that
@@ -48,6 +53,7 @@ func (s *Services) WithTag(tag string) ([]Service, error) {
 
 	return nil, fmt.Errorf("no services with tag %s", tag)
 }
+
 // WithTag finds services with a tag pattern.
 func (s *Services) WithTagUsingPattern(tagPattern string) ([]Service, error) {
 	result := []Service{}

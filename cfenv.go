@@ -14,6 +14,10 @@ func New(env map[string]string) (*App, error) {
 	if err := json.Unmarshal([]byte(appVar), &app); err != nil {
 		return nil, err
 	}
+	// duplicate the InstanceID to the previously named ID field for backwards
+	// compatibility
+	app.ID = app.InstanceID
+
 	app.Home = env["HOME"]
 	app.MemoryLimit = env["MEMORY_LIMIT"]
 	app.WorkingDir = env["PWD"]

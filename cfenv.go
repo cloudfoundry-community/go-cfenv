@@ -3,7 +3,9 @@ package cfenv
 
 import (
 	"encoding/json"
+	"os"
 	"strconv"
+	"strings"
 
 	"github.com/mitchellh/mapstructure"
 )
@@ -46,7 +48,12 @@ func New(env map[string]string) (*App, error) {
 	return &app, nil
 }
 
-// Current creates a new App with the current environment.
+// Current creates a new App with the current environment; returns an error if the current environment is not a Cloud Foundry environment
 func Current() (*App, error) {
 	return New(CurrentEnv())
+}
+
+// IsRunningOnCF returns true if the current environment is Cloud Foundry and false if it is not Cloud Foundry
+func IsRunningOnCF() bool {
+	return strings.TrimSpace(os.Getenv("VCAP_APPLICATION")) != ""
 }

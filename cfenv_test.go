@@ -1,6 +1,8 @@
 package cfenv_test
 
 import (
+	"os"
+
 	. "github.com/cloudfoundry-community/go-cfenv"
 	"github.com/mitchellh/mapstructure"
 	. "github.com/onsi/ginkgo"
@@ -53,6 +55,50 @@ var _ = Describe("Cfenv", func() {
 			`USER=vcap`,
 			`VCAP_SERVICES={"elephantsql-dev":[{"name":"","label":"elephantsql-dev","plan":"turtle","credentials":{"uri":"postgres://seilbmbd:PHxTPJSbkcDakfK4cYwXHiIX9Q8p5Bxn@babar.elephantsql.com:5432/seilbmbd"}}],"sendgrid":[{"name":"mysendgrid","label":"sendgrid","plan":"free","credentials":{"hostname":"smtp.sendgrid.net","username":"QvsXMbJ3rK","password":"HCHMOYluTv"}}]}`,
 		}
+
+		notCFEnv := []string{
+			`HOME=/home/vcap/app`,
+			`MEMORY_LIMIT_INVALID=512m`,
+			`PWD=/home/vcap`,
+			`PORT=1234`,
+			`TMPDIR=/home/vcap/tmp`,
+			`USER=vcap`,
+		}
+
+		cfEnv := []string{
+			`VCAP_APPLICATION={"instance_id":"451f045fd16427bb99c895a2649b7b2a","application_id":"abcabc123123defdef456456","cf_api": "https://api.system_domain.com","instance_index":0,"host":"0.0.0.0","port":61857,"started_at":"2013-08-12 00:05:29 +0000","started_at_timestamp":1376265929,"start":"2013-08-12 00:05:29 +0000","state_timestamp":1376265929,"limits":{"mem":512,"disk":1024,"fds":16384},"application_version":"c1063c1c-40b9-434e-a797-db240b587d32","application_name":"styx-james","application_uris":["styx-james.a1-app.cf-app.com"],"version":"c1063c1c-40b9-434e-a797-db240b587d32","name":"styx-james","uris":["styx-james.a1-app.cf-app.com"],"users":null}`,
+			`HOME=/home/vcap/app`,
+			`MEMORY_LIMIT_INVALID=512m`,
+			`PWD=/home/vcap`,
+			`PORT=1234`,
+			`TMPDIR=/home/vcap/tmp`,
+			`USER=vcap`,
+			`VCAP_SERVICES={"elephantsql-dev":[{"name":"","label":"elephantsql-dev","plan":"turtle","credentials":{"uri":"postgres://seilbmbd:PHxTPJSbkcDakfK4cYwXHiIX9Q8p5Bxn@babar.elephantsql.com:5432/seilbmbd"}}],"sendgrid":[{"name":"mysendgrid","label":"sendgrid","plan":"free","credentials":{"hostname":"smtp.sendgrid.net","username":"QvsXMbJ3rK","password":"HCHMOYluTv"}}]}`,
+		}
+
+		Context("When not running on Cloud Foundry", func() {
+			It("IsRunningOnCF() returns false", func() {
+				testEnv := Env(notCFEnv)
+				_, err := New(testEnv)
+				Ω(err).Should(HaveOccurred())
+				Ω(IsRunningOnCF()).Should(BeFalse())
+			})
+		})
+
+		Context("When running on Cloud Foundry", func() {
+			BeforeEach(func() {
+				os.Setenv("VCAP_APPLICATION", "{}")
+			})
+			AfterEach(func() {
+				os.Unsetenv("VCAP_APPLICATION")
+			})
+			It("IsRunningOnCF() returns true", func() {
+				testEnv := Env(cfEnv)
+				_, err := New(testEnv)
+				Ω(err).ShouldNot(HaveOccurred())
+				Ω(IsRunningOnCF()).Should(BeTrue())
+			})
+		})
 
 		Context("With valid environment", func() {
 			It("Should deserialize correctly", func() {

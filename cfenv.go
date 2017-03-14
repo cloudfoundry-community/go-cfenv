@@ -3,6 +3,7 @@ package cfenv
 
 import (
 	"encoding/json"
+	"strconv"
 
 	"github.com/mitchellh/mapstructure"
 )
@@ -20,9 +21,13 @@ func New(env map[string]string) (*App, error) {
 
 	app.Home = env["HOME"]
 	app.MemoryLimit = env["MEMORY_LIMIT"]
+	if port, err := strconv.Atoi(env["PORT"]); err == nil {
+		app.Port = port
+	}
 	app.WorkingDir = env["PWD"]
 	app.TempDir = env["TMPDIR"]
 	app.User = env["USER"]
+
 	var rawServices map[string]interface{}
 	servicesVar := env["VCAP_SERVICES"]
 	if err := json.Unmarshal([]byte(servicesVar), &rawServices); err != nil {

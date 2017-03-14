@@ -134,6 +134,15 @@ var _ = Describe("Cfenv", func() {
 				Ω(isValidTags).Should(BeTrue(), "Not valid tags when finding by regex")
 
 			})
+
+			It("Should prefer the PORT environment variable over VCAP_APPLICATION.PORT", func() {
+				validEnv = append(validEnv, "PORT=12345")
+				testEnv := Env(validEnv)
+				cfenv, err := New(testEnv)
+				Ω(err).Should(BeNil())
+				Ω(cfenv).ShouldNot(BeNil())
+				Ω(cfenv.Port).Should(BeEquivalentTo(12345))
+			})
 		})
 
 		Context("Without a space name and id", func() {

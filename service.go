@@ -1,8 +1,11 @@
 package cfenv
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -31,6 +34,22 @@ func (s *Service) CredentialString(key string) (string, bool) {
 // Services is an association of service labels to a slice of services with that
 // label.
 type Services map[string][]Service
+
+func ParseServices(interf interface{}) (*Services, error) {
+	var s string
+	switch interf.(type) {
+	case string:
+		s = interf.(string)
+	default:
+		tem, err := json.Marshal(interf)
+		if err != nil {
+			os.Exit(1)
+		}
+		s = string(tem)
+	}
+	var ss Services
+	return &ss, json.Unmarshal([]byte(s), &ss)
+}
 
 // WithTag finds services with the specified tag.
 func (s *Services) WithTag(tag string) ([]Service, error) {
@@ -123,4 +142,56 @@ func (s *Services) WithName(name string) (*Service, error) {
 	}
 
 	return nil, fmt.Errorf("no service with name %s", name)
+}
+
+// WithCredentials finds the service with specified credentials
+func (ss *Services) WithCredentials(keys ...string) (*Service, bool) {
+	for _, list := range *ss {
+		for _, svc := range list {
+			found := true
+			for _, want := range keys {
+				if _, ok := svc.GetCredential(want); !ok {
+					found = false
+					break
+				}
+			}
+			if found {
+				return &svc, true
+			}
+		}
+	}
+	return &Service{}, false
+}
+
+// GetCredential get specified credentail in a service
+func (sv *Service) GetCredential(key string) (interface{}, bool) {
+	var o interface{}
+
+	o = sv.Credentials
+	for _, p := range strings.Split(key, ".") {
+		switch o.(type) {
+		case map[string]interface{}:
+			v, ok := o.(map[string]interface{})[p]
+			if !ok {
+				return nil, false
+			}
+			o = v
+
+		case []interface{}:
+			u, err := strconv.ParseUint(p, 10, 0)
+			if err != nil {
+				return nil, false
+			}
+			i := int(u)
+			if i >= len(o.([]interface{})) {
+				return nil, false
+			}
+			o = o.([]interface{})[i]
+
+		default:
+			return nil, false
+		}
+	}
+
+	return o, true
 }

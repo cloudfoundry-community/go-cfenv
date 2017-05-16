@@ -145,8 +145,8 @@ func (s *Services) WithName(name string) (*Service, error) {
 }
 
 // WithCredentials finds the service with specified credentials
-func (ss *Services) WithCredentials(keys ...string) (*Service, bool) {
-	for _, list := range *ss {
+func (s *Services) WithCredentials(keys ...string) (*Service, bool) {
+	for _, list := range *s {
 		for _, svc := range list {
 			found := true
 			for _, want := range keys {
@@ -164,10 +164,10 @@ func (ss *Services) WithCredentials(keys ...string) (*Service, bool) {
 }
 
 // GetCredential get specified credentail in a service
-func (sv *Service) GetCredential(key string) (interface{}, bool) {
+func (s *Service) GetCredential(key string) (interface{}, bool) {
 	var o interface{}
 
-	o = sv.Credentials
+	o = s.Credentials
 	for _, p := range strings.Split(key, ".") {
 		switch o.(type) {
 		case map[string]interface{}:

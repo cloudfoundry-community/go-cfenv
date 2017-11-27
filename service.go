@@ -3,6 +3,7 @@ package cfenv
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -20,12 +21,64 @@ type Service struct {
 	Label       string                 // label of the service
 	Tags        []string               // tags for the service
 	Plan        string                 // plan of the service
-	Credentials map[string]interface{} // credentials for the service
+	Credentials map[string]interface{} `json:"credentials"` // credentials for the service
 }
 
 func (s *Service) CredentialString(key string) (string, bool) {
 	credential, ok := s.Credentials[key].(string)
 	return credential, ok
+}
+
+// CredentialInterface get specified credentail in a service
+func (s *Service) Credential(key string) (interface{}, bool) {
+	var o interface{}
+
+	o = s.Credentials
+	for _, p := range strings.Split(key, ".") {
+		switch o.(type) {
+		case map[string]interface{}:
+			v, ok := o.(map[string]interface{})[p]
+			if !ok {
+				return nil, false
+			}
+			o = valueType(v)
+
+		case []interface{}:
+			u, err := strconv.ParseUint(p, 10, 0)
+			if err != nil {
+				return nil, false
+			}
+			i := int(u)
+			if i >= len(o.([]interface{})) {
+				return nil, false
+			}
+			o = valueType(o.([]interface{})[i])
+
+		default:
+			return nil, false
+		}
+	}
+	return o, true
+}
+
+func valueType(v interface{}) (o interface{}) {
+	o = v
+	switch v.(type) {
+	case float64:
+		if v == float64(int64(v.(float64))) {
+			o = int64(v.(float64))
+		}
+
+	case string:
+		l := strings.ToLower(v.(string))
+		switch l {
+		case "true":
+			o = true
+		case "false":
+			o = false
+		}
+	}
+	return
 }
 
 // Services is an association of service labels to a slice of services with that

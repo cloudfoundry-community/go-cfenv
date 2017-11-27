@@ -1,6 +1,7 @@
 package cfenv_test
 
 import (
+	"encoding/json"
 	"os"
 
 	. "github.com/cloudfoundry-community/go-cfenv"
@@ -364,5 +365,90 @@ var _ = Describe("Cfenv", func() {
 			_, ok := service.CredentialString("nested")
 			Expect(ok).To(BeFalse())
 		})
+	})
+
+	Describe("Credential", func() {
+		s := `
+			{	
+				"credentials": {
+					"string": "stringy-credential",
+					"int":    42,
+					"protocols": {
+						"amqp": {
+							"uri":   "rabbitmq-uri",
+							"ssl":   "false",
+							"tls":   true,
+							"hosts": ["rabbit", "rabbitmq"]
+						}
+					}
+				}
+			}
+			`
+
+		var service Service
+		json.Unmarshal([]byte(s), &service)
+
+		It("returns the requested credential as a string when the credential is a string", func() {
+			result, ok := service.Credential("string")
+			Expect(ok).To(BeTrue())
+			Expect(result).To(Equal("stringy-credential"))
+		})
+
+		It("returns the requested credential as a int when the credential a int", func() {
+			result, ok := service.Credential("int")
+			Expect(ok).To(BeTrue())
+			Expect(int(result.(int64))).To(Equal(42))
+		})
+
+		It("returns the requested credential as a bool when the credential is a bool in a string", func() {
+			result, ok := service.Credential("protocols.amqp.ssl")
+			Expect(ok).To(BeTrue())
+			Expect(result).To(Equal(false))
+		})
+
+		It("returns the requested credential as a bool when the credential is a bool", func() {
+			result, ok := service.Credential("protocols.amqp.tls")
+			Expect(ok).To(BeTrue())
+			Expect(result).To(Equal(true))
+		})
+
+		It("returns false when the credential does not exist", func() {
+			_, ok := service.Credential("notexisted")
+			Expect(ok).To(BeFalse())
+		})
+
+		It("returns the requested credential when the credential is a nested thing", func() {
+			result, ok := service.Credential("protocols.amqp.uri")
+			Expect(ok).To(BeTrue())
+			Expect(result).To(Equal("rabbitmq-uri"))
+		})
+
+		It("returns the requested credential when the credential is in an array", func() {
+			result, ok := service.Credential("protocols.amqp.hosts.0")
+			Expect(ok).To(BeTrue())
+			Expect(result).To(Equal("rabbit"))
+		})
+
+		It("returns the requested credential when the credential is in an array", func() {
+			result, ok := service.Credential("protocols.amqp.hosts.1")
+			Expect(ok).To(BeTrue())
+			Expect(result).To(Equal("rabbitmq"))
+		})
+
+		It("returns false when index exceeds the array length", func() {
+			_, ok := service.Credential("protocols.amqp.hosts.2")
+			Expect(ok).To(BeFalse())
+		})
+
+		It("returns false when using negative index in an array", func() {
+			_, ok := service.Credential("protocols.amqp.hosts.-1")
+			Expect(ok).To(BeFalse())
+		})
+
+		It("returns false when using wrong index in an array", func() {
+			_, ok := service.Credential("protocols.amqp.hosts.ONE")
+			Expect(ok).To(BeFalse())
+		})
+
 	})
 })

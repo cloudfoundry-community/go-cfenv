@@ -18,7 +18,7 @@ var _ = Describe("Cfenv", func() {
 			`PWD=/home/vcap`,
 			`TMPDIR=/home/vcap/tmp`,
 			`USER=vcap`,
-			`VCAP_SERVICES={"elephantsql-dev":[{"name":"elephantsql-dev-c6c60","label":"elephantsql-dev","tags":["New Product","relational","Data Store","postgresql"],"plan":"turtle","credentials":{"uri":"postgres://seilbmbd:PHxTPJSbkcDakfK4cYwXHiIX9Q8p5Bxn@babar.elephantsql.com:5432/seilbmbd"}}],"sendgrid":[{"name":"mysendgrid","label":"sendgrid","tags":["smtp","Email"],"plan":"free","credentials":{"hostname":"smtp.sendgrid.net","username":"QvsXMbJ3rK","password":"HCHMOYluTv"}}]}`,
+			`VCAP_SERVICES={"elephantsql-dev":[{"name":"elephantsql-dev-c6c60","label":"elephantsql-dev","tags":["New Product","relational","Data Store","postgresql"],"plan":"turtle","credentials":{"uri":"postgres://seilbmbd:PHxTPJSbkcDakfK4cYwXHiIX9Q8p5Bxn@babar.elephantsql.com:5432/seilbmbd"}}],"sendgrid":[{"name":"mysendgrid","label":"sendgrid","tags":["smtp","Email"],"plan":"free","credentials":{"hostname":"smtp.sendgrid.net","username":"QvsXMbJ3rK","password":"HCHMOYluTv"}}],"nfs":[{"credentials":{},"label":"nfs","name":"nfs","plan":"Existing","tags":["nfs"],"volume_mounts":[{"container_dir":"/testpath","device_type":"shared","mode":"rw"}]}]}`,
 		}
 
 		validEnvWithoutSpaceIDAndName := []string{
@@ -73,7 +73,7 @@ var _ = Describe("Cfenv", func() {
 			`PORT=1234`,
 			`TMPDIR=/home/vcap/tmp`,
 			`USER=vcap`,
-			`VCAP_SERVICES={"elephantsql-dev":[{"name":"","label":"elephantsql-dev","plan":"turtle","credentials":{"uri":"postgres://seilbmbd:PHxTPJSbkcDakfK4cYwXHiIX9Q8p5Bxn@babar.elephantsql.com:5432/seilbmbd"}}],"sendgrid":[{"name":"mysendgrid","label":"sendgrid","plan":"free","credentials":{"hostname":"smtp.sendgrid.net","username":"QvsXMbJ3rK","password":"HCHMOYluTv"}}]}`,
+			`VCAP_SERVICES={"elephantsql-dev":[{"name":"","label":"elephantsql-dev","plan":"turtle","credentials":{"uri":"postgres://seilbmbd:PHxTPJSbkcDakfK4cYwXHiIX9Q8p5Bxn@babar.elephantsql.com:5432/seilbmbd"}}],"sendgrid":[{"name":"mysendgrid","label":"sendgrid","plan":"free","credentials":{"hostname":"smtp.sendgrid.net","username":"QvsXMbJ3rK","password":"HCHMOYluTv"}}],"nfs":[{"credentials":{},"label":"nfs","name":"nfsexport","plan":"Existing","volume_mounts":[{"container_dir":"/testpath","device_type":"shared","mode":"rw"}]}]}`,
 		}
 
 		Context("When not running on Cloud Foundry", func() {
@@ -127,7 +127,7 @@ var _ = Describe("Cfenv", func() {
 				Ω(cfenv.Limits.Mem).Should(BeEquivalentTo(512))
 				Ω(cfenv.Limits.FDs).Should(BeEquivalentTo(16384))
 				Ω(cfenv.ApplicationURIs[0]).Should(BeEquivalentTo("styx-james.a1-app.cf-app.com"))
-				Ω(len(cfenv.Services)).Should(BeEquivalentTo(2))
+				Ω(len(cfenv.Services)).Should(BeEquivalentTo(3))
 				Ω(cfenv.Services["elephantsql-dev"][0].Name).Should(BeEquivalentTo("elephantsql-dev-c6c60"))
 				Ω(cfenv.Services["elephantsql-dev"][0].Label).Should(BeEquivalentTo("elephantsql-dev"))
 				Ω(cfenv.Services["elephantsql-dev"][0].Tags).Should(BeEquivalentTo([]string{"New Product", "relational", "Data Store", "postgresql"}))
@@ -142,6 +142,8 @@ var _ = Describe("Cfenv", func() {
 				Ω(cfenv.Services["sendgrid"][0].Credentials["hostname"]).Should(BeEquivalentTo("smtp.sendgrid.net"))
 				Ω(cfenv.Services["sendgrid"][0].Credentials["username"]).Should(BeEquivalentTo("QvsXMbJ3rK"))
 				Ω(cfenv.Services["sendgrid"][0].Credentials["password"]).Should(BeEquivalentTo("HCHMOYluTv"))
+
+				Ω(cfenv.Services["nfs"][0].Volume_Mounts[0]["container_dir"]).Should(BeEquivalentTo("/testpath"))
 
 				name, err := cfenv.Services.WithName("elephantsql-dev-c6c60")
 				Ω(name.Name).Should(BeEquivalentTo("elephantsql-dev-c6c60"))
@@ -168,12 +170,12 @@ var _ = Describe("Cfenv", func() {
 				}
 				Ω(isValidNames).Should(BeTrue(), "Not valid names when finding by regex")
 
-				tags, err := cfenv.Services.WithTagUsingPattern(".*s.*")
-				Ω(len(tags)).Should(BeEquivalentTo(2))
+				tags, err := cfenv.Services.WithTagUsingPattern(".*sql.*")
+				Ω(len(tags)).Should(BeEquivalentTo(1))
 				Ω(err).Should(BeNil())
 				isValidTags := true
 				for _, service := range tags {
-					if service.Name != "mysendgrid" && service.Name != "elephantsql-dev-c6c60" {
+					if service.Name != "elephantsql-dev-c6c60" {
 						isValidTags = false
 					}
 				}

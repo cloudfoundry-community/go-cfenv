@@ -143,7 +143,7 @@ var _ = Describe("Cfenv", func() {
 				Ω(cfenv.Services["sendgrid"][0].Credentials["username"]).Should(BeEquivalentTo("QvsXMbJ3rK"))
 				Ω(cfenv.Services["sendgrid"][0].Credentials["password"]).Should(BeEquivalentTo("HCHMOYluTv"))
 
-				Ω(cfenv.Services["nfs"][0].Volume_Mounts[0]["container_dir"]).Should(BeEquivalentTo("/testpath"))
+				Ω(cfenv.Services["nfs"][0].VolumeMounts[0]["container_dir"]).Should(BeEquivalentTo("/testpath"))
 
 				name, err := cfenv.Services.WithName("elephantsql-dev-c6c60")
 				Ω(name.Name).Should(BeEquivalentTo("elephantsql-dev-c6c60"))

@@ -1,13 +1,20 @@
 package cfenv_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	reporter "github.com/joefitzgerald/rainbow-reporter"
+	"github.com/sclevine/spec"
 
 	"testing"
 )
 
-func TestCfenv(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Cfenv Suite")
+var suite spec.Suite
+
+func init() {
+	suite = spec.New("go-cfenv api", spec.Report(reporter.Rainbow{}))
+	suite("environment", testEnvironment)
+	suite("cfenv", testcfenv)
+}
+
+func TestSuite(t *testing.T) {
+	suite.Run(t)
 }

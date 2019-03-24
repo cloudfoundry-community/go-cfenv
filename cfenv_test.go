@@ -10,7 +10,7 @@ import (
 )
 
 var _ = Describe("Cfenv", func() {
-	Describe("Application deserialization", func() {
+	Describe("application deserialization", func() {
 		validEnv := []string{
 			`VCAP_APPLICATION={"instance_id":"451f045fd16427bb99c895a2649b7b2a","application_id":"abcabc123123defdef456456","cf_api": "https://api.system_domain.com","instance_index":0,"host":"0.0.0.0","port":61857,"started_at":"2013-08-12 00:05:29 +0000","started_at_timestamp":1376265929,"start":"2013-08-12 00:05:29 +0000","state_timestamp":1376265929,"limits":{"mem":512,"disk":1024,"fds":16384},"application_version":"c1063c1c-40b9-434e-a797-db240b587d32","application_name":"styx-james","application_uris":["styx-james.a1-app.cf-app.com"],"version":"c1063c1c-40b9-434e-a797-db240b587d32","name":"styx-james","space_id":"3e0c28c5-6d9c-436b-b9ee-1f4326e54d05","space_name":"jdk","uris":["styx-james.a1-app.cf-app.com"],"users":null}`,
 			`HOME=/home/vcap/app`,
@@ -76,16 +76,16 @@ var _ = Describe("Cfenv", func() {
 			`VCAP_SERVICES={"elephantsql-dev":[{"name":"","label":"elephantsql-dev","plan":"turtle","credentials":{"uri":"postgres://seilbmbd:PHxTPJSbkcDakfK4cYwXHiIX9Q8p5Bxn@babar.elephantsql.com:5432/seilbmbd"}}],"sendgrid":[{"name":"mysendgrid","label":"sendgrid","plan":"free","credentials":{"hostname":"smtp.sendgrid.net","username":"QvsXMbJ3rK","password":"HCHMOYluTv"}}],"nfs":[{"credentials":{},"label":"nfs","name":"nfsexport","plan":"Existing","volume_mounts":[{"container_dir":"/testpath","device_type":"shared","mode":"rw"}]}]}`,
 		}
 
-		Context("When not running on Cloud Foundry", func() {
+		Context("when not running on Cloud Foundry", func() {
 			It("IsRunningOnCF() returns false", func() {
 				testEnv := Env(notCFEnv)
 				_, err := New(testEnv)
-				Ω(err).Should(HaveOccurred())
-				Ω(IsRunningOnCF()).Should(BeFalse())
+				Expect(err).To(HaveOccurred())
+				Expect(IsRunningOnCF()).To(BeFalse())
 			})
 		})
 
-		Context("When running on Cloud Foundry", func() {
+		Context("when running on Cloud Foundry", func() {
 			BeforeEach(func() {
 				os.Setenv("VCAP_APPLICATION", "{}")
 			})
@@ -95,247 +95,247 @@ var _ = Describe("Cfenv", func() {
 			It("IsRunningOnCF() returns true", func() {
 				testEnv := Env(cfEnv)
 				_, err := New(testEnv)
-				Ω(err).ShouldNot(HaveOccurred())
-				Ω(IsRunningOnCF()).Should(BeTrue())
+				Expect(err).NotTo(HaveOccurred())
+				Expect(IsRunningOnCF()).To(BeTrue())
 			})
 		})
 
-		Context("With valid environment", func() {
-			It("Should deserialize correctly", func() {
+		Context("with valid environment", func() {
+			It("should deserialize correctly", func() {
 				testEnv := Env(validEnv)
 				cfenv, err := New(testEnv)
-				Ω(err).Should(BeNil())
-				Ω(cfenv).ShouldNot(BeNil())
+				Expect(err).To(BeNil())
+				Expect(cfenv).NotTo(BeNil())
 
-				Ω(cfenv.ID).Should(BeEquivalentTo("451f045fd16427bb99c895a2649b7b2a"))
-				Ω(cfenv.InstanceID).Should(BeEquivalentTo("451f045fd16427bb99c895a2649b7b2a"))
-				Ω(cfenv.AppID).Should(BeEquivalentTo("abcabc123123defdef456456"))
-				Ω(cfenv.CFAPI).Should(BeEquivalentTo("https://api.system_domain.com"))
-				Ω(cfenv.Index).Should(BeEquivalentTo(0))
-				Ω(cfenv.Name).Should(BeEquivalentTo("styx-james"))
-				Ω(cfenv.SpaceName).Should(BeEquivalentTo("jdk"))
-				Ω(cfenv.SpaceID).Should(BeEquivalentTo("3e0c28c5-6d9c-436b-b9ee-1f4326e54d05"))
-				Ω(cfenv.Host).Should(BeEquivalentTo("0.0.0.0"))
-				Ω(cfenv.Port).Should(BeEquivalentTo(61857))
-				Ω(cfenv.Version).Should(BeEquivalentTo("c1063c1c-40b9-434e-a797-db240b587d32"))
-				Ω(cfenv.Home).Should(BeEquivalentTo("/home/vcap/app"))
-				Ω(cfenv.MemoryLimit).Should(BeEquivalentTo("512m"))
-				Ω(cfenv.WorkingDir).Should(BeEquivalentTo("/home/vcap"))
-				Ω(cfenv.TempDir).Should(BeEquivalentTo("/home/vcap/tmp"))
-				Ω(cfenv.User).Should(BeEquivalentTo("vcap"))
-				Ω(cfenv.Limits.Disk).Should(BeEquivalentTo(1024))
-				Ω(cfenv.Limits.Mem).Should(BeEquivalentTo(512))
-				Ω(cfenv.Limits.FDs).Should(BeEquivalentTo(16384))
-				Ω(cfenv.ApplicationURIs[0]).Should(BeEquivalentTo("styx-james.a1-app.cf-app.com"))
-				Ω(len(cfenv.Services)).Should(BeEquivalentTo(3))
-				Ω(cfenv.Services["elephantsql-dev"][0].Name).Should(BeEquivalentTo("elephantsql-dev-c6c60"))
-				Ω(cfenv.Services["elephantsql-dev"][0].Label).Should(BeEquivalentTo("elephantsql-dev"))
-				Ω(cfenv.Services["elephantsql-dev"][0].Tags).Should(BeEquivalentTo([]string{"New Product", "relational", "Data Store", "postgresql"}))
-				Ω(cfenv.Services["elephantsql-dev"][0].Plan).Should(BeEquivalentTo("turtle"))
-				Ω(len(cfenv.Services["elephantsql-dev"][0].Credentials)).Should(BeEquivalentTo(1))
-				Ω(cfenv.Services["elephantsql-dev"][0].Credentials["uri"]).Should(BeEquivalentTo("postgres://seilbmbd:PHxTPJSbkcDakfK4cYwXHiIX9Q8p5Bxn@babar.elephantsql.com:5432/seilbmbd"))
-				Ω(cfenv.Services["sendgrid"][0].Name).Should(BeEquivalentTo("mysendgrid"))
-				Ω(cfenv.Services["sendgrid"][0].Label).Should(BeEquivalentTo("sendgrid"))
-				Ω(cfenv.Services["sendgrid"][0].Tags).Should(BeEquivalentTo([]string{"smtp", "Email"}))
-				Ω(cfenv.Services["sendgrid"][0].Plan).Should(BeEquivalentTo("free"))
-				Ω(len(cfenv.Services["sendgrid"][0].Credentials)).Should(BeEquivalentTo(3))
-				Ω(cfenv.Services["sendgrid"][0].Credentials["hostname"]).Should(BeEquivalentTo("smtp.sendgrid.net"))
-				Ω(cfenv.Services["sendgrid"][0].Credentials["username"]).Should(BeEquivalentTo("QvsXMbJ3rK"))
-				Ω(cfenv.Services["sendgrid"][0].Credentials["password"]).Should(BeEquivalentTo("HCHMOYluTv"))
+				Expect(cfenv.ID).To(Equal("451f045fd16427bb99c895a2649b7b2a"))
+				Expect(cfenv.InstanceID).To(Equal("451f045fd16427bb99c895a2649b7b2a"))
+				Expect(cfenv.AppID).To(Equal("abcabc123123defdef456456"))
+				Expect(cfenv.CFAPI).To(Equal("https://api.system_domain.com"))
+				Expect(cfenv.Index).To(Equal(0))
+				Expect(cfenv.Name).To(Equal("styx-james"))
+				Expect(cfenv.SpaceName).To(Equal("jdk"))
+				Expect(cfenv.SpaceID).To(Equal("3e0c28c5-6d9c-436b-b9ee-1f4326e54d05"))
+				Expect(cfenv.Host).To(Equal("0.0.0.0"))
+				Expect(cfenv.Port).To(Equal(61857))
+				Expect(cfenv.Version).To(Equal("c1063c1c-40b9-434e-a797-db240b587d32"))
+				Expect(cfenv.Home).To(Equal("/home/vcap/app"))
+				Expect(cfenv.MemoryLimit).To(Equal("512m"))
+				Expect(cfenv.WorkingDir).To(Equal("/home/vcap"))
+				Expect(cfenv.TempDir).To(Equal("/home/vcap/tmp"))
+				Expect(cfenv.User).To(Equal("vcap"))
+				Expect(cfenv.Limits.Disk).To(Equal(1024))
+				Expect(cfenv.Limits.Mem).To(Equal(512))
+				Expect(cfenv.Limits.FDs).To(Equal(16384))
+				Expect(cfenv.ApplicationURIs[0]).To(Equal("styx-james.a1-app.cf-app.com"))
+				Expect(len(cfenv.Services)).To(Equal(3))
+				Expect(cfenv.Services["elephantsql-dev"][0].Name).To(Equal("elephantsql-dev-c6c60"))
+				Expect(cfenv.Services["elephantsql-dev"][0].Label).To(Equal("elephantsql-dev"))
+				Expect(cfenv.Services["elephantsql-dev"][0].Tags).To(Equal([]string{"New Product", "relational", "Data Store", "postgresql"}))
+				Expect(cfenv.Services["elephantsql-dev"][0].Plan).To(Equal("turtle"))
+				Expect(len(cfenv.Services["elephantsql-dev"][0].Credentials)).To(Equal(1))
+				Expect(cfenv.Services["elephantsql-dev"][0].Credentials["uri"]).To(Equal("postgres://seilbmbd:PHxTPJSbkcDakfK4cYwXHiIX9Q8p5Bxn@babar.elephantsql.com:5432/seilbmbd"))
+				Expect(cfenv.Services["sendgrid"][0].Name).To(Equal("mysendgrid"))
+				Expect(cfenv.Services["sendgrid"][0].Label).To(Equal("sendgrid"))
+				Expect(cfenv.Services["sendgrid"][0].Tags).To(Equal([]string{"smtp", "Email"}))
+				Expect(cfenv.Services["sendgrid"][0].Plan).To(Equal("free"))
+				Expect(len(cfenv.Services["sendgrid"][0].Credentials)).To(Equal(3))
+				Expect(cfenv.Services["sendgrid"][0].Credentials["hostname"]).To(Equal("smtp.sendgrid.net"))
+				Expect(cfenv.Services["sendgrid"][0].Credentials["username"]).To(Equal("QvsXMbJ3rK"))
+				Expect(cfenv.Services["sendgrid"][0].Credentials["password"]).To(Equal("HCHMOYluTv"))
 
-				Ω(cfenv.Services["nfs"][0].VolumeMounts[0]["container_dir"]).Should(BeEquivalentTo("/testpath"))
+				Expect(cfenv.Services["nfs"][0].VolumeMounts[0]["container_dir"]).To(Equal("/testpath"))
 
 				name, err := cfenv.Services.WithName("elephantsql-dev-c6c60")
-				Ω(name.Name).Should(BeEquivalentTo("elephantsql-dev-c6c60"))
-				Ω(err).Should(BeNil())
+				Expect(name.Name).To(Equal("elephantsql-dev-c6c60"))
+				Expect(err).To(BeNil())
 
 				tag, err := cfenv.Services.WithTag("postgresql")
-				Ω(len(tag)).Should(BeEquivalentTo(1))
-				Ω(tag[0].Tags).Should(ContainElement("postgresql"))
-				Ω(err).Should(BeNil())
+				Expect(len(tag)).To(Equal(1))
+				Expect(tag[0].Tags).To(ContainElement("postgresql"))
+				Expect(err).To(BeNil())
 
 				label, err := cfenv.Services.WithLabel("elephantsql-dev")
-				Ω(len(label)).Should(BeEquivalentTo(1))
-				Ω(label[0].Label).Should(BeEquivalentTo("elephantsql-dev"))
-				Ω(err).Should(BeNil())
+				Expect(len(label)).To(Equal(1))
+				Expect(label[0].Label).To(Equal("elephantsql-dev"))
+				Expect(err).To(BeNil())
 
 				names, err := cfenv.Services.WithNameUsingPattern(".*(sql|mysend).*")
-				Ω(len(names)).Should(BeEquivalentTo(2))
-				Ω(err).Should(BeNil())
+				Expect(len(names)).To(Equal(2))
+				Expect(err).To(BeNil())
 				isValidNames := true
 				for _, service := range names {
 					if service.Name != "mysendgrid" && service.Name != "elephantsql-dev-c6c60" {
 						isValidNames = false
 					}
 				}
-				Ω(isValidNames).Should(BeTrue(), "Not valid names when finding by regex")
+				Expect(isValidNames).To(BeTrue(), "Not valid names when finding by regex")
 
 				tags, err := cfenv.Services.WithTagUsingPattern(".*sql.*")
-				Ω(len(tags)).Should(BeEquivalentTo(1))
-				Ω(err).Should(BeNil())
+				Expect(len(tags)).To(Equal(1))
+				Expect(err).To(BeNil())
 				isValidTags := true
 				for _, service := range tags {
 					if service.Name != "elephantsql-dev-c6c60" {
 						isValidTags = false
 					}
 				}
-				Ω(isValidTags).Should(BeTrue(), "Not valid tags when finding by regex")
+				Expect(isValidTags).To(BeTrue(), "Not valid tags when finding by regex")
 
 			})
 
-			It("Should prefer the PORT environment variable over VCAP_APPLICATION.PORT", func() {
+			It("should prefer the PORT environment variable over VCAP_APPLICATION.PORT", func() {
 				validEnv = append(validEnv, "PORT=12345")
 				testEnv := Env(validEnv)
 				cfenv, err := New(testEnv)
-				Ω(err).Should(BeNil())
-				Ω(cfenv).ShouldNot(BeNil())
-				Ω(cfenv.Port).Should(BeEquivalentTo(12345))
+				Expect(err).To(BeNil())
+				Expect(cfenv).NotTo(BeNil())
+				Expect(cfenv.Port).To(Equal(12345))
 			})
 		})
 
-		Context("Without a space name and id", func() {
-			It("Should deserialize correctly", func() {
+		Context("without a space name and id", func() {
+			It("should deserialize correctly", func() {
 				testEnv := Env(validEnvWithoutSpaceIDAndName)
 				cfenv, err := New(testEnv)
-				Ω(err).Should(BeNil())
-				Ω(cfenv).ShouldNot(BeNil())
-				Ω(cfenv.SpaceID).Should(BeEmpty())
-				Ω(cfenv.SpaceName).Should(BeEmpty())
+				Expect(err).To(BeNil())
+				Expect(cfenv).NotTo(BeNil())
+				Expect(cfenv.SpaceID).To(BeEmpty())
+				Expect(cfenv.SpaceName).To(BeEmpty())
 			})
 		})
 
-		Context("With valid environment with a service with credentials that are an array", func() {
+		Context("with valid environment with a service with credentials that are an array", func() {
 			It("should deserialize correctly", func() {
 				testEnv := Env(envWithArrayCredentials)
 				cfenv, err := New(testEnv)
-				Ω(err).Should(BeNil())
-				Ω(cfenv).ShouldNot(BeNil())
+				Expect(err).To(BeNil())
+				Expect(cfenv).NotTo(BeNil())
 
 				credential := map[string]interface{}{}
 				mapstructure.Decode(cfenv.Services["p-kafka"][0].Credentials["kafka"], &credential)
 
-				Ω(len(cfenv.Services["p-kafka"][0].Credentials)).Should(BeEquivalentTo(1))
-				Ω(credential["node_ips"]).Should(BeEquivalentTo([]interface{}{"10.244.9.2", "10.244.9.6", "10.244.9.10"}))
-				Ω(credential["port"]).Should(BeEquivalentTo(9092))
+				Expect(len(cfenv.Services["p-kafka"][0].Credentials)).To(Equal(1))
+				Expect(credential["node_ips"]).To(Equal([]interface{}{"10.244.9.2", "10.244.9.6", "10.244.9.10"}))
+				Expect(credential["port"]).To(Equal(float64(9092)))
 			})
 		})
 
-		Context("With valid environment with a service with credentials with a port that is an int", func() {
-			It("Should deserialize correctly", func() {
+		Context("with valid environment with a service with credentials with a port that is an int", func() {
+			It("should to deserialize correctly", func() {
 				testEnv := Env(envWithIntCredentials)
 				cfenv, err := New(testEnv)
-				Ω(err).Should(BeNil())
-				Ω(cfenv).ShouldNot(BeNil())
+				Expect(err).To(BeNil())
+				Expect(cfenv).NotTo(BeNil())
 
-				Ω(cfenv.ID).Should(BeEquivalentTo("451f045fd16427bb99c895a2649b7b2a"))
-				Ω(cfenv.Index).Should(BeEquivalentTo(0))
-				Ω(cfenv.Name).Should(BeEquivalentTo("styx-james"))
-				Ω(cfenv.Host).Should(BeEquivalentTo("0.0.0.0"))
-				Ω(cfenv.Port).Should(BeEquivalentTo(61857))
-				Ω(cfenv.Version).Should(BeEquivalentTo("c1063c1c-40b9-434e-a797-db240b587d32"))
-				Ω(cfenv.Home).Should(BeEquivalentTo("/home/vcap/app"))
-				Ω(cfenv.MemoryLimit).Should(BeEquivalentTo("512m"))
-				Ω(cfenv.WorkingDir).Should(BeEquivalentTo("/home/vcap"))
-				Ω(cfenv.TempDir).Should(BeEquivalentTo("/home/vcap/tmp"))
-				Ω(cfenv.User).Should(BeEquivalentTo("vcap"))
-				Ω(cfenv.ApplicationURIs[0]).Should(BeEquivalentTo("styx-james.a1-app.cf-app.com"))
-				Ω(len(cfenv.Services)).Should(BeEquivalentTo(3))
+				Expect(cfenv.ID).To(Equal("451f045fd16427bb99c895a2649b7b2a"))
+				Expect(cfenv.Index).To(Equal(0))
+				Expect(cfenv.Name).To(Equal("styx-james"))
+				Expect(cfenv.Host).To(Equal("0.0.0.0"))
+				Expect(cfenv.Port).To(Equal(61857))
+				Expect(cfenv.Version).To(Equal("c1063c1c-40b9-434e-a797-db240b587d32"))
+				Expect(cfenv.Home).To(Equal("/home/vcap/app"))
+				Expect(cfenv.MemoryLimit).To(Equal("512m"))
+				Expect(cfenv.WorkingDir).To(Equal("/home/vcap"))
+				Expect(cfenv.TempDir).To(Equal("/home/vcap/tmp"))
+				Expect(cfenv.User).To(Equal("vcap"))
+				Expect(cfenv.ApplicationURIs[0]).To(Equal("styx-james.a1-app.cf-app.com"))
+				Expect(len(cfenv.Services)).To(Equal(3))
 
-				Ω(cfenv.Services["elephantsql-dev"][0].Name).Should(BeEquivalentTo("elephantsql-dev-c6c60"))
-				Ω(cfenv.Services["elephantsql-dev"][0].Label).Should(BeEquivalentTo("elephantsql-dev"))
-				Ω(cfenv.Services["elephantsql-dev"][0].Tags).Should(BeEquivalentTo([]string{"New Product", "relational", "Data Store", "postgresql"}))
-				Ω(cfenv.Services["elephantsql-dev"][0].Plan).Should(BeEquivalentTo("turtle"))
-				Ω(len(cfenv.Services["elephantsql-dev"][0].Credentials)).Should(BeEquivalentTo(1))
-				Ω(cfenv.Services["elephantsql-dev"][0].Credentials["uri"]).Should(BeEquivalentTo("postgres://seilbmbd:PHxTPJSbkcDakfK4cYwXHiIX9Q8p5Bxn@babar.elephantsql.com:5432/seilbmbd"))
+				Expect(cfenv.Services["elephantsql-dev"][0].Name).To(Equal("elephantsql-dev-c6c60"))
+				Expect(cfenv.Services["elephantsql-dev"][0].Label).To(Equal("elephantsql-dev"))
+				Expect(cfenv.Services["elephantsql-dev"][0].Tags).To(Equal([]string{"New Product", "relational", "Data Store", "postgresql"}))
+				Expect(cfenv.Services["elephantsql-dev"][0].Plan).To(Equal("turtle"))
+				Expect(len(cfenv.Services["elephantsql-dev"][0].Credentials)).To(Equal(1))
+				Expect(cfenv.Services["elephantsql-dev"][0].Credentials["uri"]).To(Equal("postgres://seilbmbd:PHxTPJSbkcDakfK4cYwXHiIX9Q8p5Bxn@babar.elephantsql.com:5432/seilbmbd"))
 
-				Ω(cfenv.Services["cloudantNoSQLDB"][0].Name).Should(BeEquivalentTo("my_cloudant"))
-				Ω(cfenv.Services["cloudantNoSQLDB"][0].Label).Should(BeEquivalentTo("cloudantNoSQLDB"))
-				Ω(cfenv.Services["cloudantNoSQLDB"][0].Plan).Should(BeEquivalentTo("Shared"))
-				Ω(len(cfenv.Services["cloudantNoSQLDB"][0].Credentials)).Should(BeEquivalentTo(5))
-				Ω(cfenv.Services["cloudantNoSQLDB"][0].Credentials["port"]).Should(BeEquivalentTo(443))
+				Expect(cfenv.Services["cloudantNoSQLDB"][0].Name).To(Equal("my_cloudant"))
+				Expect(cfenv.Services["cloudantNoSQLDB"][0].Label).To(Equal("cloudantNoSQLDB"))
+				Expect(cfenv.Services["cloudantNoSQLDB"][0].Plan).To(Equal("Shared"))
+				Expect(len(cfenv.Services["cloudantNoSQLDB"][0].Credentials)).To(Equal(5))
+				Expect(cfenv.Services["cloudantNoSQLDB"][0].Credentials["port"]).To(Equal(float64(443)))
 
-				Ω(cfenv.Services["sendgrid"][0].Name).Should(BeEquivalentTo("mysendgrid"))
-				Ω(cfenv.Services["sendgrid"][0].Label).Should(BeEquivalentTo("sendgrid"))
-				Ω(cfenv.Services["sendgrid"][0].Tags).Should(BeEquivalentTo([]string{"smtp", "Email"}))
-				Ω(cfenv.Services["sendgrid"][0].Plan).Should(BeEquivalentTo("free"))
-				Ω(len(cfenv.Services["sendgrid"][0].Credentials)).Should(BeEquivalentTo(3))
-				Ω(cfenv.Services["sendgrid"][0].Credentials["hostname"]).Should(BeEquivalentTo("smtp.sendgrid.net"))
-				Ω(cfenv.Services["sendgrid"][0].Credentials["username"]).Should(BeEquivalentTo("QvsXMbJ3rK"))
-				Ω(cfenv.Services["sendgrid"][0].Credentials["password"]).Should(BeEquivalentTo("HCHMOYluTv"))
+				Expect(cfenv.Services["sendgrid"][0].Name).To(Equal("mysendgrid"))
+				Expect(cfenv.Services["sendgrid"][0].Label).To(Equal("sendgrid"))
+				Expect(cfenv.Services["sendgrid"][0].Tags).To(Equal([]string{"smtp", "Email"}))
+				Expect(cfenv.Services["sendgrid"][0].Plan).To(Equal("free"))
+				Expect(len(cfenv.Services["sendgrid"][0].Credentials)).To(Equal(3))
+				Expect(cfenv.Services["sendgrid"][0].Credentials["hostname"]).To(Equal("smtp.sendgrid.net"))
+				Expect(cfenv.Services["sendgrid"][0].Credentials["username"]).To(Equal("QvsXMbJ3rK"))
+				Expect(cfenv.Services["sendgrid"][0].Credentials["password"]).To(Equal("HCHMOYluTv"))
 
 				name, err := cfenv.Services.WithName("elephantsql-dev-c6c60")
-				Ω(name.Name).Should(BeEquivalentTo("elephantsql-dev-c6c60"))
-				Ω(err).Should(BeNil())
+				Expect(name.Name).To(Equal("elephantsql-dev-c6c60"))
+				Expect(err).To(BeNil())
 
 				tag, err := cfenv.Services.WithTag("postgresql")
-				Ω(len(tag)).Should(BeEquivalentTo(1))
-				Ω(tag[0].Tags).Should(ContainElement("postgresql"))
-				Ω(err).Should(BeNil())
+				Expect(len(tag)).To(Equal(1))
+				Expect(tag[0].Tags).To(ContainElement("postgresql"))
+				Expect(err).To(BeNil())
 
 				label, err := cfenv.Services.WithLabel("elephantsql-dev")
-				Ω(len(label)).Should(BeEquivalentTo(1))
-				Ω(label[0].Label).Should(BeEquivalentTo("elephantsql-dev"))
-				Ω(err).Should(BeNil())
+				Expect(len(label)).To(Equal(1))
+				Expect(label[0].Label).To(Equal("elephantsql-dev"))
+				Expect(err).To(BeNil())
 
 				names, err := cfenv.Services.WithNameUsingPattern(".*(sql|my_cloud).*")
-				Ω(len(names)).Should(BeEquivalentTo(2))
-				Ω(err).Should(BeNil())
+				Expect(len(names)).To(Equal(2))
+				Expect(err).To(BeNil())
 				isValidNames := true
 				for _, service := range names {
 					if service.Name != "my_cloudant" && service.Name != "elephantsql-dev-c6c60" {
 						isValidNames = false
 					}
 				}
-				Ω(isValidNames).Should(BeTrue(), "Not valid names when finding by regex")
+				Expect(isValidNames).To(BeTrue(), "Not valid names when finding by regex")
 
 				tags, err := cfenv.Services.WithTagUsingPattern(".*s.*")
-				Ω(len(tags)).Should(BeEquivalentTo(2))
-				Ω(err).Should(BeNil())
+				Expect(len(tags)).To(Equal(2))
+				Expect(err).To(BeNil())
 				isValidTags := true
 				for _, service := range tags {
 					if service.Name != "mysendgrid" && service.Name != "elephantsql-dev-c6c60" {
 						isValidTags = false
 					}
 				}
-				Ω(isValidTags).Should(BeTrue(), "Not valid tags when finding by regex")
+				Expect(isValidTags).To(BeTrue(), "Not valid tags when finding by regex")
 
 			})
 		})
 
-		Context("With invalid environment", func() {
-			It("Should deserialize correctly, with missing values", func() {
+		Context("with invalid environment", func() {
+			It("should deserialize correctly, with missing values", func() {
 				testEnv := Env(invalidEnv)
 				cfenv, err := New(testEnv)
-				Ω(err).Should(BeNil())
-				Ω(cfenv).ShouldNot(BeNil())
+				Expect(err).To(BeNil())
+				Expect(cfenv).NotTo(BeNil())
 
-				Ω(cfenv.ID).Should(BeEquivalentTo(""))
-				Ω(cfenv.Index).Should(BeEquivalentTo(0))
-				Ω(cfenv.Name).Should(BeEquivalentTo("styx-james"))
-				Ω(cfenv.Host).Should(BeEquivalentTo("0.0.0.0"))
-				Ω(cfenv.Port).Should(BeEquivalentTo(61857))
-				Ω(cfenv.Version).Should(BeEquivalentTo("c1063c1c-40b9-434e-a797-db240b587d32"))
-				Ω(cfenv.Home).Should(BeEquivalentTo("/home/vcap/app"))
-				Ω(cfenv.MemoryLimit).Should(BeEquivalentTo(""))
-				Ω(cfenv.WorkingDir).Should(BeEquivalentTo("/home/vcap"))
-				Ω(cfenv.TempDir).Should(BeEquivalentTo("/home/vcap/tmp"))
-				Ω(cfenv.User).Should(BeEquivalentTo("vcap"))
-				Ω(cfenv.ApplicationURIs[0]).Should(BeEquivalentTo("styx-james.a1-app.cf-app.com"))
-				Ω(len(cfenv.Services)).Should(BeEquivalentTo(2))
-				Ω(len(cfenv.Services)).Should(BeEquivalentTo(2))
-				Ω(cfenv.Services["elephantsql-dev"][0].Name).Should(BeEquivalentTo(""))
-				Ω(cfenv.Services["elephantsql-dev"][0].Label).Should(BeEquivalentTo("elephantsql-dev"))
-				Ω(cfenv.Services["elephantsql-dev"][0].Plan).Should(BeEquivalentTo("turtle"))
-				Ω(len(cfenv.Services["elephantsql-dev"][0].Credentials)).Should(BeEquivalentTo(1))
-				Ω(cfenv.Services["elephantsql-dev"][0].Credentials["uri"]).Should(BeEquivalentTo("postgres://seilbmbd:PHxTPJSbkcDakfK4cYwXHiIX9Q8p5Bxn@babar.elephantsql.com:5432/seilbmbd"))
+				Expect(cfenv.ID).To(Equal(""))
+				Expect(cfenv.Index).To(Equal(0))
+				Expect(cfenv.Name).To(Equal("styx-james"))
+				Expect(cfenv.Host).To(Equal("0.0.0.0"))
+				Expect(cfenv.Port).To(Equal(61857))
+				Expect(cfenv.Version).To(Equal("c1063c1c-40b9-434e-a797-db240b587d32"))
+				Expect(cfenv.Home).To(Equal("/home/vcap/app"))
+				Expect(cfenv.MemoryLimit).To(Equal(""))
+				Expect(cfenv.WorkingDir).To(Equal("/home/vcap"))
+				Expect(cfenv.TempDir).To(Equal("/home/vcap/tmp"))
+				Expect(cfenv.User).To(Equal("vcap"))
+				Expect(cfenv.ApplicationURIs[0]).To(Equal("styx-james.a1-app.cf-app.com"))
+				Expect(len(cfenv.Services)).To(Equal(2))
+				Expect(len(cfenv.Services)).To(Equal(2))
+				Expect(cfenv.Services["elephantsql-dev"][0].Name).To(Equal(""))
+				Expect(cfenv.Services["elephantsql-dev"][0].Label).To(Equal("elephantsql-dev"))
+				Expect(cfenv.Services["elephantsql-dev"][0].Plan).To(Equal("turtle"))
+				Expect(len(cfenv.Services["elephantsql-dev"][0].Credentials)).To(Equal(1))
+				Expect(cfenv.Services["elephantsql-dev"][0].Credentials["uri"]).To(Equal("postgres://seilbmbd:PHxTPJSbkcDakfK4cYwXHiIX9Q8p5Bxn@babar.elephantsql.com:5432/seilbmbd"))
 
-				Ω(cfenv.Services["sendgrid"][0].Name).Should(BeEquivalentTo("mysendgrid"))
-				Ω(cfenv.Services["sendgrid"][0].Label).Should(BeEquivalentTo("sendgrid"))
-				Ω(cfenv.Services["sendgrid"][0].Plan).Should(BeEquivalentTo("free"))
-				Ω(len(cfenv.Services["sendgrid"][0].Credentials)).Should(BeEquivalentTo(3))
-				Ω(cfenv.Services["sendgrid"][0].Credentials["hostname"]).Should(BeEquivalentTo("smtp.sendgrid.net"))
-				Ω(cfenv.Services["sendgrid"][0].Credentials["username"]).Should(BeEquivalentTo("QvsXMbJ3rK"))
-				Ω(cfenv.Services["sendgrid"][0].Credentials["password"]).Should(BeEquivalentTo("HCHMOYluTv"))
+				Expect(cfenv.Services["sendgrid"][0].Name).To(Equal("mysendgrid"))
+				Expect(cfenv.Services["sendgrid"][0].Label).To(Equal("sendgrid"))
+				Expect(cfenv.Services["sendgrid"][0].Plan).To(Equal("free"))
+				Expect(len(cfenv.Services["sendgrid"][0].Credentials)).To(Equal(3))
+				Expect(cfenv.Services["sendgrid"][0].Credentials["hostname"]).To(Equal("smtp.sendgrid.net"))
+				Expect(cfenv.Services["sendgrid"][0].Credentials["username"]).To(Equal("QvsXMbJ3rK"))
+				Expect(cfenv.Services["sendgrid"][0].Credentials["password"]).To(Equal("HCHMOYluTv"))
 			})
 		})
 	})

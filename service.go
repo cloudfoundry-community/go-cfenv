@@ -26,6 +26,7 @@ type Service struct {
 
 func (s *Service) CredentialString(key string) (string, bool) {
 	credential, ok := s.Credentials[key].(string)
+
 	return credential, ok
 }
 
@@ -36,12 +37,14 @@ type Services map[string][]Service
 // WithTag finds services with the specified tag.
 func (s *Services) WithTag(tag string) ([]Service, error) {
 	result := []Service{}
+
 	for _, services := range *s {
 		for i := range services {
 			service := services[i]
 			for _, t := range service.Tags {
 				if strings.EqualFold(tag, t) {
 					result = append(result, service)
+
 					break
 				}
 			}
@@ -58,12 +61,14 @@ func (s *Services) WithTag(tag string) ([]Service, error) {
 // WithTag finds services with a tag pattern.
 func (s *Services) WithTagUsingPattern(tagPattern string) ([]Service, error) {
 	result := []Service{}
+
 	for _, services := range *s {
 		for i := range services {
 			service := services[i]
 			for _, t := range service.Tags {
 				if s.match(tagPattern, t) {
 					result = append(result, service)
+
 					break
 				}
 			}
@@ -87,17 +92,11 @@ func (s *Services) WithLabel(label string) ([]Service, error) {
 
 	return nil, fmt.Errorf("no services with label %s", label)
 }
-func (s *Services) match(matcher, content string) bool {
-	regex, err := regexp.Compile("(?i)^" + matcher + "$")
-	if err != nil {
-		return false
-	}
-	return regex.MatchString(content)
-}
 
 // WithName finds the service with a name pattern.
 func (s *Services) WithNameUsingPattern(namePattern string) ([]Service, error) {
 	result := []Service{}
+
 	for _, services := range *s {
 		for i := range services {
 			service := services[i]
@@ -106,9 +105,11 @@ func (s *Services) WithNameUsingPattern(namePattern string) ([]Service, error) {
 			}
 		}
 	}
+
 	if len(result) > 0 {
 		return result, nil
 	}
+
 	return nil, fmt.Errorf("no service with name pattern %s", namePattern)
 }
 
@@ -124,4 +125,13 @@ func (s *Services) WithName(name string) (*Service, error) {
 	}
 
 	return nil, fmt.Errorf("no service with name %s", name)
+}
+
+func (s *Services) match(matcher, content string) bool {
+	regex, err := regexp.Compile("(?i)^" + matcher + "$")
+	if err != nil {
+		return false
+	}
+
+	return regex.MatchString(content)
 }

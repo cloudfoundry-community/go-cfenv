@@ -13,6 +13,7 @@ import (
 // New creates a new App with the provided environment.
 func New(env map[string]string) (*App, error) {
 	var app App
+
 	appVar := env["VCAP_APPLICATION"]
 	if err := json.Unmarshal([]byte(appVar), &app); err != nil {
 		return nil, err
@@ -23,37 +24,44 @@ func New(env map[string]string) (*App, error) {
 
 	app.Home = env["HOME"]
 	app.MemoryLimit = env["MEMORY_LIMIT"]
+
 	if port, err := strconv.Atoi(env["PORT"]); err == nil {
 		app.Port = port
 	}
+
 	app.WorkingDir = env["PWD"]
 	app.TempDir = env["TMPDIR"]
 	app.User = env["USER"]
 
 	var rawServices map[string]interface{}
+
 	servicesVar := env["VCAP_SERVICES"]
 	if err := json.Unmarshal([]byte(servicesVar), &rawServices); err != nil {
 		return nil, err
 	}
 
 	services := make(map[string][]Service)
-	for k, v := range rawServices {
+
+	for key, value := range rawServices {
 		var serviceInstances []Service
-		if err := mapstructure.WeakDecode(v, &serviceInstances); err != nil {
+		if err := mapstructure.WeakDecode(value, &serviceInstances); err != nil {
 			return nil, err
 		}
-		services[k] = serviceInstances
+
+		services[key] = serviceInstances
 	}
+
 	app.Services = services
+
 	return &app, nil
 }
 
-// Current creates a new App with the current environment; returns an error if the current environment is not a Cloud Foundry environment
+// Current creates a new App with the current environment; returns an error if the current environment is not a Cloud Foundry environment.
 func Current() (*App, error) {
 	return New(CurrentEnv())
 }
 
-// IsRunningOnCF returns true if the current environment is Cloud Foundry and false if it is not Cloud Foundry
+// IsRunningOnCF returns true if the current environment is Cloud Foundry and false if it is not Cloud Foundry.
 func IsRunningOnCF() bool {
 	return strings.TrimSpace(os.Getenv("VCAP_APPLICATION")) != ""
 }

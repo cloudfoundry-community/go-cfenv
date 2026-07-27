@@ -1,6 +1,6 @@
 package cfenv
 
-// An App holds information about the current app running on Cloud Foundry
+// An App holds information about the current app running on Cloud Foundry.
 type App struct {
 	ID              string   `json:"-"`                // DEPRECATED id of the instance
 	InstanceID      string   `json:"instance_id"`      // id of the instance

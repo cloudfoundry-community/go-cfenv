@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/cloudfoundry-community/go-cfenv"
-	"github.com/mitchellh/mapstructure"
+	"github.com/go-viper/mapstructure/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 )

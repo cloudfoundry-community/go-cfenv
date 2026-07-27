@@ -4,7 +4,6 @@ go 1.18
 
 require (
 	github.com/go-viper/mapstructure/v2 v2.5.0
-	github.com/joefitzgerald/rainbow-reporter v0.1.0
 	github.com/onsi/gomega v1.5.0
 	github.com/sclevine/spec v1.2.0
 )

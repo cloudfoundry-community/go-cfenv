@@ -1,7 +1,6 @@
 package cfenv
 
 import (
-	reporter "github.com/joefitzgerald/rainbow-reporter"
 	"github.com/sclevine/spec"
 
 	"testing"
@@ -10,7 +9,7 @@ import (
 var suite spec.Suite
 
 func init() {
-	suite = spec.New("go-cfenv internals", spec.Report(reporter.Rainbow{}))
+	suite = spec.New("go-cfenv internals")
 	suite("envmap", testEnvMap)
 }
 

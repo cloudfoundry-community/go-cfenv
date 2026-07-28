@@ -16,12 +16,18 @@ import (
 // service object contains a child object for each service instance of that
 // service that is bound to the application.
 type Service struct {
-	Name         string                 // name of the service
-	Label        string                 // label of the service
+	Name         string                 // the binding name if the binding has one, otherwise the instance name
+	Label        string                 // name of the service offering; "user-provided" for a user-provided instance
 	Tags         []string               // tags for the service
 	Plan         string                 // plan of the service
 	Credentials  map[string]interface{} // credentials for the service
 	VolumeMounts []map[string]string    `mapstructure:"volume_mounts"` // volume mount info as provided by the nfsbroker
+
+	SyslogDrainURL string `mapstructure:"syslog_drain_url"` // where the service wants app logs streamed; set by `cf cups -l`
+	InstanceGUID   string `mapstructure:"instance_guid"`    // GUID of the service instance
+	InstanceName   string `mapstructure:"instance_name"`    // name the user gave the service instance
+	BindingGUID    string `mapstructure:"binding_guid"`     // GUID of the service binding
+	BindingName    string `mapstructure:"binding_name"`     // name the user gave the binding, if any
 }
 
 func (s *Service) CredentialString(key string) (string, bool) {

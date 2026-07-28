@@ -1,0 +1,18 @@
+version: 2
+updates:
+  # Go modules. Note: x/net and x/text are deliberately pinned to their
+  # newest go1.18-compatible releases. Reject Dependabot PRs that move
+  # them past x/net v0.35.0 or x/text v0.22.0 until the go directive is
+  # raised, since newer releases require go 1.23.
+  - package-ecosystem: gomod
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  # Workflow actions do not update themselves.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

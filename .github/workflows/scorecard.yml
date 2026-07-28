@@ -24,7 +24,9 @@ jobs:
         with:
           persist-credentials: false
       - name: Run analysis
-        uses: ossf/scorecard-action@v2
+        # Pinned to a full patch tag: this action publishes no floating `v2`
+        # major tag, so `@v2` fails to resolve and the workflow never runs.
+        uses: ossf/scorecard-action@v2.4.4
         with:
           results_file: results.sarif
           results_format: sarif

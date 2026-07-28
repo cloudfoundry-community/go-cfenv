@@ -2,6 +2,7 @@ package cfenv_test
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/cloudfoundry-community/go-cfenv"
@@ -371,6 +372,84 @@ func testcfenv(t *testing.T, when spec.G, it spec.S) {
 		it("returns false when the credential is a nested thing", func() {
 			_, ok := service.CredentialString("nested")
 			Expect(ok).To(BeFalse())
+		})
+	})
+
+	// Issue #28: with the file-based-vcap-services app feature enabled, Cloud
+	// Foundry sets VCAP_SERVICES_FILE_PATH and does not set VCAP_SERVICES at
+	// all, so the services have to be read from the file.
+	when("file-based service bindings", func() {
+		const servicesJSON = `{"p-rabbitmq":[{
+			"name":"rmq",
+			"label":"p-rabbitmq",
+			"tags":["rabbitmq"],
+			"plan":"standard",
+			"credentials":{"protocols":{"amqp":{"uri":"amqp://guest@rabbitmq:5672"}}}
+		}]}`
+
+		writeServicesFile := func(contents string) string {
+			path := filepath.Join(t.TempDir(), "vcap_services")
+			Expect(os.WriteFile(path, []byte(contents), 0o600)).To(Succeed())
+
+			return path
+		}
+
+		it("reads the services from the file when VCAP_SERVICES is absent", func() {
+			env, err := cfenv.New(map[string]string{
+				"VCAP_APPLICATION":        "{}",
+				"VCAP_SERVICES_FILE_PATH": writeServicesFile(servicesJSON),
+			})
+			Expect(err).To(BeNil())
+
+			service, err := env.Services.WithName("rmq")
+			Expect(err).To(BeNil())
+
+			uri, ok := service.Credential("protocols", "amqp", "uri")
+			Expect(ok).To(BeTrue())
+			Expect(uri).To(Equal("amqp://guest@rabbitmq:5672"))
+		})
+
+		it("prefers the file when both are set", func() {
+			env, err := cfenv.New(map[string]string{
+				"VCAP_APPLICATION":        "{}",
+				"VCAP_SERVICES":           `{"elephantsql":[{"name":"from-the-env-var"}]}`,
+				"VCAP_SERVICES_FILE_PATH": writeServicesFile(servicesJSON),
+			})
+			Expect(err).To(BeNil())
+
+			_, err = env.Services.WithName("rmq")
+			Expect(err).To(BeNil())
+
+			_, err = env.Services.WithName("from-the-env-var")
+			Expect(err).ToNot(BeNil())
+		})
+
+		it("fails loudly when the file cannot be read", func() {
+			_, err := cfenv.New(map[string]string{
+				"VCAP_APPLICATION":        "{}",
+				"VCAP_SERVICES_FILE_PATH": filepath.Join(t.TempDir(), "does-not-exist"),
+			})
+			Expect(err).ToNot(BeNil())
+			Expect(err.Error()).To(ContainSubstring("VCAP_SERVICES_FILE_PATH"))
+		})
+
+		it("reports malformed JSON in the file", func() {
+			_, err := cfenv.New(map[string]string{
+				"VCAP_APPLICATION":        "{}",
+				"VCAP_SERVICES_FILE_PATH": writeServicesFile("{not json"),
+			})
+			Expect(err).ToNot(BeNil())
+		})
+
+		it("still reads VCAP_SERVICES when no file path is set", func() {
+			env, err := cfenv.New(map[string]string{
+				"VCAP_APPLICATION": "{}",
+				"VCAP_SERVICES":    servicesJSON,
+			})
+			Expect(err).To(BeNil())
+
+			_, err = env.Services.WithName("rmq")
+			Expect(err).To(BeNil())
 		})
 	})
 

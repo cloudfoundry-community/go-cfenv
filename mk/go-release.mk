@@ -101,6 +101,12 @@ $(foreach target,$(TARGETS),$(eval $(call $(_HIDE)release_target_impl,$(word 1,$
 #   TAG_REMOTE   Remote for tag/untag. Default: origin
 #   DRAFT        DRAFT=yes publishes a draft release.
 #   NOTES        Notes file for publish. Default: gh --generate-notes.
+#   TAG_NOTES_CMD
+#                Command whose stdout becomes the annotated tag body.
+#                Empty (default) tags with "Release <TAG>". Set it to
+#                `$(MAKE) changelog-assemble` to have changelog.mk's
+#                fragments become the tag body — then publish reads them
+#                straight back and nothing is hand-edited at release time.
 #   GH_ASSETS    Files publish uploads. Default: RELEASE_ROOT/PROJECT-*
 #                (artifacts + their sibling checksum files).
 #   DRYRUN       DRYRUN=yes echoes state-changing commands instead.
@@ -110,12 +116,19 @@ $(foreach target,$(TARGETS),$(eval $(call $(_HIDE)release_target_impl,$(word 1,$
 # --prerelease derives from an alpha/beta/rc part in the tag — dev.N
 # tags can be full releases. Rollback order: unpublish first, then
 # untag, so a half-done rollback never orphans the tag.
+#
+# Notes precedence in publish: NOTES (a file) wins if set; otherwise, if
+# the tag carries a body of its own, --notes-from-tag uses it; otherwise
+# gh generates notes from the commit log. So a repo using changelog.mk
+# gets fragment-derived notes with no extra arguments, and a repo using
+# neither is unaffected.
 
-TAG        ?= v$($(_HIDE)SEMVER_NOMETA)
-TAG_REMOTE ?= origin
-DRAFT      ?=
-NOTES      ?=
-GH_ASSETS  ?= $(RELEASE_ROOT)/$(PROJECT)-*
+TAG           ?= v$($(_HIDE)SEMVER_NOMETA)
+TAG_REMOTE    ?= origin
+DRAFT         ?=
+NOTES         ?=
+TAG_NOTES_CMD ?=
+GH_ASSETS     ?= $(RELEASE_ROOT)/$(PROJECT)-*
 
 # Prefix that turns state-changing commands into echoes under DRYRUN=yes
 $(_HIDE)DRY := $(if $(filter yes,$(DRYRUN)),@echo "DRYRUN:" )
@@ -124,7 +137,19 @@ $(_HIDE)DRY := $(if $(filter yes,$(DRYRUN)),@echo "DRYRUN:" )
 
 tag:
 	@case "$(TAG)" in v[0-9]*.[0-9]*.[0-9]*) ;; *) echo "ERROR: '$(TAG)' does not look like a release tag (vX.Y.Z[-prerelease])" >&2; exit 1;; esac
+ifeq ($(strip $(TAG_NOTES_CMD)),)
 	$($(_HIDE)DRY)git tag -a "$(TAG)" -m "Release $(TAG)"
+else
+	@body=$$($(TAG_NOTES_CMD)) || { echo "ERROR: TAG_NOTES_CMD failed - refusing to tag" >&2; exit 1; }; \
+	if [ -z "$$body" ]; then \
+		echo "ERROR: TAG_NOTES_CMD produced no output - refusing to tag $(TAG) with empty release notes." >&2; \
+		echo "       Add a fragment (make changelog-new), or unset TAG_NOTES_CMD for an untitled release." >&2; \
+		exit 1; \
+	fi; \
+	$(if $(filter yes,$(DRYRUN)), \
+		printf 'DRYRUN: git tag -a %s -F - <<EOF\n%s\nEOF\n' "$(TAG)" "$$body", \
+		printf '%s\n\n%s\n' "Release $(TAG)" "$$body" | git tag -a "$(TAG)" -F -)
+endif
 	$($(_HIDE)DRY)git push $(TAG_REMOTE) "refs/tags/$(TAG)"
 
 untag:
@@ -135,7 +160,12 @@ untag:
 publish:
 	@TAG="$(TAG)"; \
 	PRERELEASE=""; case "$$TAG" in *-alpha*|*-beta*|*-rc*) PRERELEASE="--prerelease";; esac; \
-	set -- gh release create "$$TAG" --title "$(PROJECT) $$TAG" --verify-tag $$PRERELEASE $(if $(filter yes,$(DRAFT)),--draft) $(if $(NOTES),--notes-file "$(NOTES)",--generate-notes) $(GH_ASSETS); \
+	NOTESARG="--generate-notes"; \
+	$(if $(NOTES),NOTESARG="--notes-file $(NOTES)",\
+		if [ -n "$$(git tag -l --format='%(contents:body)' "$$TAG" 2>/dev/null | tr -d '[:space:]')" ]; then \
+			NOTESARG="--notes-from-tag"; \
+		fi); \
+	set -- gh release create "$$TAG" --title "$(PROJECT) $$TAG" --verify-tag $$PRERELEASE $(if $(filter yes,$(DRAFT)),--draft) $$NOTESARG $(GH_ASSETS); \
 	$(if $(filter yes,$(DRYRUN)),echo "DRYRUN: $$*",echo "+ $$*"; "$$@")
 
 unpublish:

@@ -1,9 +1,16 @@
 version: 2
 updates:
-  # Go modules. Note: x/net and x/text are deliberately pinned to their
-  # newest go1.18-compatible releases. Reject Dependabot PRs that move
-  # them past x/net v0.35.0 or x/text v0.22.0 until the go directive is
-  # raised, since newer releases require go 1.23.
+  # Go modules. Several dependencies are deliberately held at their newest
+  # go1.18-compatible release. Reject Dependabot PRs that move them until
+  # the go directive is raised:
+  #
+  #   golang.org/x/net    v0.35.0   - newer requires go 1.23
+  #   golang.org/x/text   v0.22.0   - newer requires go 1.23
+  #   github.com/onsi/gomega v1.27.10 - newer requires go 1.25
+  #
+  # gomega is the trap: it is a direct requirement, so Dependabot proposes
+  # major jumps that look routine. v1.42.1 declares `go 1.25.0` and would
+  # silently break the declared 1.18 floor.
   - package-ecosystem: gomod
     directory: "/"
     schedule:

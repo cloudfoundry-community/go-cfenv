@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Keeps the declared go 1.18 floor honest. Compile only: this leg runs an
+  # old toolchain deliberately, so no test, lint, or vulnerability scan runs
+  # here — they would report that toolchain's stdlib advisories, which say
+  # nothing about this code.
+  build-floor:
+    name: Build at go directive floor
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v6
+        with:
+          go-version: "1.18"
+      - run: go build ./...
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+      - run: make test-race
+      - run: make cover
+
+  check:
+    name: Quality gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+      - uses: golangci/golangci-lint-action@v9
+        with:
+          version: latest
+          args: --timeout=5m
+      - run: make fmt vet tidy
+
+  audit:
+    name: Security audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+      - run: make audit
+        env:
+          # modrot queries the GitHub API to detect archived dependencies.
+          # Without a token it cannot authenticate and the target fails.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

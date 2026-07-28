@@ -1,8 +1,13 @@
-# Go CF Environment Package [![CI](https://github.com/cloudfoundry-community/go-cfenv/actions/workflows/ci.yml/badge.svg)](https://github.com/cloudfoundry-community/go-cfenv/actions/workflows/ci.yml)
+# Go CF Environment Package
+
+[![CI](https://github.com/cloudfoundry-community/go-cfenv/actions/workflows/ci.yml/badge.svg)](https://github.com/cloudfoundry-community/go-cfenv/actions/workflows/ci.yml)
+[![CodeQL](https://img.shields.io/github/actions/workflow/status/cloudfoundry-community/go-cfenv/codeql.yml?label=CodeQL)](https://github.com/cloudfoundry-community/go-cfenv/security/code-scanning)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/cloudfoundry-community/go-cfenv/badge)](https://scorecard.dev/viewer/?uri=github.com/cloudfoundry-community/go-cfenv)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/cloudfoundry-community/go-cfenv)](go.mod)
+[![Latest Release](https://img.shields.io/github/v/release/cloudfoundry-community/go-cfenv)](https://github.com/cloudfoundry-community/go-cfenv/releases)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 ### Overview
-
-[![Go Reference](https://pkg.go.dev/badge/github.com/cloudfoundry-community/go-cfenv.svg)](https://pkg.go.dev/github.com/cloudfoundry-community/go-cfenv)
 
 `cfenv` is a package to assist you in writing Go apps that run on [Cloud Foundry](http://cloudfoundry.org). It provides convenience functions and structures that map to Cloud Foundry environment variable primitives (http://docs.cloudfoundry.org/devguide/deploy-apps/environment-variable.html).
 

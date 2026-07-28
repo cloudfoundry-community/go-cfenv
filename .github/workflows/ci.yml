@@ -55,6 +55,9 @@ jobs:
           version: latest
           args: --timeout=5m
       - run: make fmt vet tidy
+      # Catches a stub or malformed release-notes fragment before it can
+      # silently drop out of the assembled notes at release time.
+      - run: make changelog-check
 
   audit:
     name: Security audit
@@ -71,22 +74,15 @@ jobs:
           go-version: stable
       # govulncheck, gosec and modrot are go install'ed on demand by
       # mk/security.mk. gitleaks is a system package, so it is the one
-      # scanner a plain runner has to be given.
-      - name: Install gitleaks
-        env:
-          GITLEAKS_VERSION: 8.30.1
-        run: |
-          set -euo pipefail
-          base="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
-          tarball="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
-          curl -fsSL -O "${base}/${tarball}"
-          curl -fsSL -O "${base}/gitleaks_${GITLEAKS_VERSION}_checksums.txt"
-          grep " ${tarball}\$" "gitleaks_${GITLEAKS_VERSION}_checksums.txt" | sha256sum -c -
-          tar -xzf "${tarball}" gitleaks
-          install -m 0755 gitleaks /usr/local/bin/gitleaks
-          rm -f "${tarball}" "gitleaks_${GITLEAKS_VERSION}_checksums.txt" gitleaks
-          gitleaks version
+      # scanner a plain runner has to be given; the snippet fetches a
+      # pinned release and verifies it against the published checksums.
+      - run: make install-gitleaks
       - run: make audit
+        env:
+          PATH: ${{ github.workspace }}/bin:${{ env.PATH }}
+          # modrot queries the GitHub API to detect archived dependencies.
+          # Without a token it cannot authenticate and the target fails.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         env:
           # modrot queries the GitHub API to detect archived dependencies.
           # Without a token it cannot authenticate and the target fails.

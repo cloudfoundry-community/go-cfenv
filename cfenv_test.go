@@ -374,6 +374,69 @@ func testcfenv(t *testing.T, when spec.G, it spec.S) {
 		})
 	})
 
+	// Issue #25: everything CF puts in a binding object should survive the
+	// decode. A user-provided instance carries a syslog drain URL, and a
+	// named binding has an instance name distinct from its binding name.
+	when("binding metadata", func() {
+		var service *cfenv.Service
+
+		it.Before(func() {
+			env, err := cfenv.New(map[string]string{
+				"VCAP_APPLICATION": "{}",
+				"VCAP_SERVICES": `{"user-provided":[{
+					"binding_guid":"bd0f0b8a-2a4e-4b1e-9a4f-6f1a2c3d4e5f",
+					"binding_name":"my-binding",
+					"instance_guid":"1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+					"instance_name":"my-ups",
+					"name":"my-binding",
+					"label":"user-provided",
+					"tags":["logging"],
+					"credentials":{"url":"https://example.com"},
+					"syslog_drain_url":"syslog://logs.example.com:514"
+				}]}`,
+			})
+			Expect(err).To(BeNil())
+
+			service, err = env.Services.WithName("my-binding")
+			Expect(err).To(BeNil())
+		})
+
+		it("captures the syslog drain URL", func() {
+			Expect(service.SyslogDrainURL).To(Equal("syslog://logs.example.com:514"))
+		})
+
+		it("captures the instance identity", func() {
+			Expect(service.InstanceGUID).To(Equal("1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d"))
+			Expect(service.InstanceName).To(Equal("my-ups"))
+		})
+
+		it("captures the binding identity", func() {
+			Expect(service.BindingGUID).To(Equal("bd0f0b8a-2a4e-4b1e-9a4f-6f1a2c3d4e5f"))
+			Expect(service.BindingName).To(Equal("my-binding"))
+		})
+
+		it("keeps the instance name distinct from the binding name", func() {
+			Expect(service.Name).To(Equal("my-binding"))
+			Expect(service.InstanceName).To(Equal("my-ups"))
+		})
+
+		it("leaves the new fields empty when CF omits them", func() {
+			env, err := cfenv.New(map[string]string{
+				"VCAP_APPLICATION": "{}",
+				"VCAP_SERVICES":    `{"sendgrid":[{"name":"mysendgrid","label":"sendgrid","plan":"free","credentials":{}}]}`,
+			})
+			Expect(err).To(BeNil())
+
+			plain, err := env.Services.WithName("mysendgrid")
+			Expect(err).To(BeNil())
+			Expect(plain.SyslogDrainURL).To(Equal(""))
+			Expect(plain.InstanceGUID).To(Equal(""))
+			Expect(plain.InstanceName).To(Equal(""))
+			Expect(plain.BindingGUID).To(Equal(""))
+			Expect(plain.BindingName).To(Equal(""))
+		})
+	})
+
 	// Issue #11: a credential whose value was a nested object once panicked
 	// the decoder, which expected every credential to be a string. Pins the
 	// payload from that report so the fix cannot silently regress.

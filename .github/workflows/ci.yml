@@ -55,6 +55,12 @@ jobs:
           version: latest
           args: --timeout=5m
       - run: make fmt vet tidy
+      # These workflow files are the one thing here that CI cannot catch by
+      # failing: a bad action ref or a duplicate key breaks the run itself.
+      # `make check` includes this, but this job runs the gates individually
+      # because golangci-lint comes from the action above rather than `make
+      # lint` — so actionlint has to be listed here too.
+      - run: make actionlint
       # Catches a stub or malformed release-notes fragment before it can
       # silently drop out of the assembled notes at release time.
       - run: make changelog-check

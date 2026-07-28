@@ -60,6 +60,18 @@ lint: ## Run golangci-lint
 	  echo "golangci-lint not found. See https://golangci-lint.run/welcome/install/"; exit 1; }
 	golangci-lint run ./...
 
+# Workflow files are executable configuration, and YAML validity says
+# nothing about whether they work: an action ref that never resolves and a
+# duplicate env: key that stopped the whole workflow from parsing both
+# shipped past review. actionlint catches that class.
+.PHONY: actionlint
+actionlint: ## Lint GitHub Actions workflow files
+	@command -v actionlint >/dev/null 2>&1 || { \
+	  echo "Installing actionlint..."; \
+	  go install github.com/rhysd/actionlint/cmd/actionlint@latest; \
+	}
+	actionlint
+
 .PHONY: tidy
 tidy: ## Fail if go mod tidy would change anything
 	@cp go.mod go.mod.bak; cp go.sum go.sum.bak
@@ -71,7 +83,7 @@ tidy: ## Fail if go mod tidy would change anything
 	@rm -f go.mod.bak go.sum.bak
 
 .PHONY: check
-check: fmt vet lint tidy ## Run all quality gates
+check: fmt vet lint actionlint tidy ## Run all quality gates
 
 ##@ Security
 

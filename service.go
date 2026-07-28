@@ -30,6 +30,57 @@ func (s *Service) CredentialString(key string) (string, bool) {
 	return credential, ok
 }
 
+// Credential walks the credentials one key at a time and returns the value at
+// the end of the path, whatever its type: a string, a bool, the float64 a JSON
+// number decodes to, or a nested map or slice.
+//
+// Passing the keys separately means every key is addressable, including one
+// that contains a dot:
+//
+//	uri, ok := service.Credential("protocols", "amqp", "uri")
+//	url, ok := service.Credential("jdbc.url")
+//
+// It reports false if any key along the path is absent, if the path descends
+// through a value that is not a nested object, or if no keys are given.
+func (s *Service) Credential(keys ...string) (interface{}, bool) {
+	if len(keys) == 0 {
+		return nil, false
+	}
+
+	var current interface{} = s.Credentials
+
+	for _, key := range keys {
+		object, isObject := current.(map[string]interface{})
+		if !isObject {
+			return nil, false
+		}
+
+		value, exists := object[key]
+		if !exists {
+			return nil, false
+		}
+
+		current = value
+	}
+
+	return current, true
+}
+
+// CredentialPath is Credential addressed by a single dot-delimited path:
+//
+//	uri, ok := service.CredentialPath("protocols.amqp.uri")
+//
+// Because the path is split on every dot, it cannot address a key that itself
+// contains one — CredentialPath("jdbc.url") looks for "url" inside "jdbc" and
+// reports false. Use Credential for those keys.
+func (s *Service) CredentialPath(path string) (interface{}, bool) {
+	if path == "" {
+		return nil, false
+	}
+
+	return s.Credential(strings.Split(path, ".")...)
+}
+
 // Services is an association of service labels to a slice of services with that
 // label.
 type Services map[string][]Service

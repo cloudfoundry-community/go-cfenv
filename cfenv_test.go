@@ -373,4 +373,168 @@ func testcfenv(t *testing.T, when spec.G, it spec.S) {
 			Expect(ok).To(BeFalse())
 		})
 	})
+
+	// Issue #11: a credential whose value was a nested object once panicked
+	// the decoder, which expected every credential to be a string. Pins the
+	// payload from that report so the fix cannot silently regress.
+	when("credentials containing nested objects", func() {
+		it("decodes them and leaves the nested object reachable", func() {
+			env, err := cfenv.New(map[string]string{
+				"VCAP_APPLICATION": "{}",
+				"VCAP_SERVICES": `{"redis-lite":[{
+					"credentials":{
+						"hostname":"10.10.10.1",
+						"password":"abc",
+						"port":"32843",
+						"ports":{"6379/tcp":"32843"}
+					},
+					"label":"redis-lite",
+					"name":"uptime-redis",
+					"plan":"free",
+					"tags":["redis28","redis","key-value"]
+				}]}`,
+			})
+			Expect(err).To(BeNil())
+
+			service, err := env.Services.WithName("uptime-redis")
+			Expect(err).To(BeNil())
+
+			port, ok := service.Credential("ports", "6379/tcp")
+			Expect(ok).To(BeTrue())
+			Expect(port).To(Equal("32843"))
+		})
+	})
+
+	when("Credential", func() {
+		// Mirrors what cfenv.New produces: nested objects decode to
+		// map[string]interface{} and leaves keep their JSON types.
+		var service = cfenv.Service{
+			Credentials: map[string]interface{}{
+				"uri": "amqp://guest@rabbitmq:5672",
+				"protocols": map[string]interface{}{
+					"amqp": map[string]interface{}{
+						"uri":  "amqp://guest:guest@rabbitmq:5672",
+						"ssl":  false,
+						"port": float64(5672),
+					},
+				},
+				"hosts": []interface{}{"a", "b"},
+				// A real credential key that contains a dot.
+				"jdbc.url": "jdbc:mysql://x",
+			},
+		}
+
+		it("returns a top-level credential", func() {
+			result, ok := service.Credential("uri")
+			Expect(ok).To(BeTrue())
+			Expect(result).To(Equal("amqp://guest@rabbitmq:5672"))
+		})
+
+		it("returns a credential nested several levels deep", func() {
+			result, ok := service.Credential("protocols", "amqp", "uri")
+			Expect(ok).To(BeTrue())
+			Expect(result).To(Equal("amqp://guest:guest@rabbitmq:5672"))
+		})
+
+		it("returns a non-string leaf with its own type", func() {
+			result, ok := service.Credential("protocols", "amqp", "ssl")
+			Expect(ok).To(BeTrue())
+			Expect(result).To(Equal(false))
+
+			result, ok = service.Credential("protocols", "amqp", "port")
+			Expect(ok).To(BeTrue())
+			Expect(result).To(Equal(float64(5672)))
+		})
+
+		it("returns an intermediate map when the path stops there", func() {
+			result, ok := service.Credential("protocols", "amqp")
+			Expect(ok).To(BeTrue())
+			Expect(result).To(HaveKeyWithValue("uri", "amqp://guest:guest@rabbitmq:5672"))
+		})
+
+		it("returns a slice leaf", func() {
+			result, ok := service.Credential("hosts")
+			Expect(ok).To(BeTrue())
+			Expect(result).To(Equal([]interface{}{"a", "b"}))
+		})
+
+		it("addresses a key containing a dot", func() {
+			result, ok := service.Credential("jdbc.url")
+			Expect(ok).To(BeTrue())
+			Expect(result).To(Equal("jdbc:mysql://x"))
+		})
+
+		it("returns false when a top-level key is missing", func() {
+			_, ok := service.Credential("nope")
+			Expect(ok).To(BeFalse())
+		})
+
+		it("returns false when a nested key is missing", func() {
+			_, ok := service.Credential("protocols", "amqp", "nope")
+			Expect(ok).To(BeFalse())
+		})
+
+		it("returns false when descending through a non-map", func() {
+			_, ok := service.Credential("uri", "nope")
+			Expect(ok).To(BeFalse())
+		})
+
+		it("returns false when given no keys", func() {
+			_, ok := service.Credential()
+			Expect(ok).To(BeFalse())
+		})
+
+		it("returns false when the credentials are empty", func() {
+			empty := cfenv.Service{}
+			_, ok := empty.Credential("uri")
+			Expect(ok).To(BeFalse())
+		})
+	})
+
+	when("CredentialPath", func() {
+		var service = cfenv.Service{
+			Credentials: map[string]interface{}{
+				"protocols": map[string]interface{}{
+					"amqp": map[string]interface{}{
+						"uri": "amqp://guest:guest@rabbitmq:5672",
+						"ssl": false,
+					},
+				},
+				"jdbc.url": "jdbc:mysql://x",
+			},
+		}
+
+		it("returns a credential addressed by a dotted path", func() {
+			result, ok := service.CredentialPath("protocols.amqp.uri")
+			Expect(ok).To(BeTrue())
+			Expect(result).To(Equal("amqp://guest:guest@rabbitmq:5672"))
+		})
+
+		it("returns a non-string leaf with its own type", func() {
+			result, ok := service.CredentialPath("protocols.amqp.ssl")
+			Expect(ok).To(BeTrue())
+			Expect(result).To(Equal(false))
+		})
+
+		it("returns false for a missing path", func() {
+			_, ok := service.CredentialPath("protocols.stomp.uri")
+			Expect(ok).To(BeFalse())
+		})
+
+		it("returns false for an empty path", func() {
+			_, ok := service.CredentialPath("")
+			Expect(ok).To(BeFalse())
+		})
+
+		// The documented limitation of the dotted form: a key containing a
+		// dot is split and becomes unreachable. Credential addresses it.
+		it("cannot address a key containing a dot", func() {
+			_, ok := service.CredentialPath("jdbc.url")
+			Expect(ok).To(BeFalse())
+
+			result, ok := service.Credential("jdbc.url")
+			Expect(ok).To(BeTrue())
+			Expect(result).To(Equal("jdbc:mysql://x"))
+		})
+	})
 }

@@ -1,0 +1,20 @@
+# Modules exempted from the archived-dependency gate.
+#
+# Every entry needs a reason and a condition for removing it again. This
+# list is not a way to silence the gate; it exists so the gate stays
+# meaningful for dependencies we can actually act on.
+
+# gopkg.in/yaml.v3 — go-yaml/yaml, archived 2025-04-01.
+#
+# Indirect and test-only: the sole path to it is
+# github.com/onsi/gomega/matchers, so it is never part of a consumer's
+# build of this library. Nothing imports it from non-test code here.
+#
+# Not removable by upgrading: every published gomega release, current
+# ones included, requires gopkg.in/yaml.v3, so raising the go directive
+# would not drop it either. Only dropping gomega from the test suite
+# would, which is a larger change than a dependency release should make.
+#
+# Revisit if gomega ever drops the dependency, or if the test suite
+# moves off gomega.
+gopkg.in/yaml.v3

@@ -13,7 +13,7 @@
 
 # Improvements
 
-* Both archived dependencies removed.
+* Both archived direct dependencies removed.
 
   mitchellh/mapstructure (archived 2024-06-25) is replaced by
   github.com/go-viper/mapstructure/v2 v2.5.0, the maintained fork.
@@ -26,6 +26,17 @@
 
   For consumers this means archived code leaves your dependency graph:
   go-cfenv was the only path to archived mapstructure in some builds.
+
+* One archived module remains, and it cannot reach your build.
+
+  gopkg.in/yaml.v3 (archived 2025-04-01) is still present as an
+  indirect, test-only dependency. Its only path is
+  github.com/onsi/gomega/matchers, so it is not part of a consumer's
+  build of this library, and nothing here imports it outside tests.
+
+  It is not removable by upgrading: every published gomega release
+  requires it. It is recorded in .modrotignore with that rationale, so
+  the archived-dependency gate still fails on anything new.
 
 * Dead ginkgo requirement dropped.
 

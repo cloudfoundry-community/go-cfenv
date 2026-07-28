@@ -76,13 +76,11 @@ jobs:
       # mk/security.mk. gitleaks is a system package, so it is the one
       # scanner a plain runner has to be given; the snippet fetches a
       # pinned release and verifies it against the published checksums.
-      - run: make install-gitleaks
+      - name: Install gitleaks
+        run: |
+          make install-gitleaks
+          echo "$GITHUB_WORKSPACE/bin" >> "$GITHUB_PATH"
       - run: make audit
-        env:
-          PATH: ${{ github.workspace }}/bin:${{ env.PATH }}
-          # modrot queries the GitHub API to detect archived dependencies.
-          # Without a token it cannot authenticate and the target fails.
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         env:
           # modrot queries the GitHub API to detect archived dependencies.
           # Without a token it cannot authenticate and the target fails.

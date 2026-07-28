@@ -63,9 +63,29 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+          # gitleaks scans git history, so a depth-1 checkout would leave it
+          # inspecting a single commit and reporting clean regardless.
+          fetch-depth: 0
       - uses: actions/setup-go@v6
         with:
           go-version: stable
+      # govulncheck, gosec and modrot are go install'ed on demand by
+      # mk/security.mk. gitleaks is a system package, so it is the one
+      # scanner a plain runner has to be given.
+      - name: Install gitleaks
+        env:
+          GITLEAKS_VERSION: 8.30.1
+        run: |
+          set -euo pipefail
+          base="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
+          tarball="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSL -O "${base}/${tarball}"
+          curl -fsSL -O "${base}/gitleaks_${GITLEAKS_VERSION}_checksums.txt"
+          grep " ${tarball}\$" "gitleaks_${GITLEAKS_VERSION}_checksums.txt" | sha256sum -c -
+          tar -xzf "${tarball}" gitleaks
+          install -m 0755 gitleaks /usr/local/bin/gitleaks
+          rm -f "${tarball}" "gitleaks_${GITLEAKS_VERSION}_checksums.txt" gitleaks
+          gitleaks version
       - run: make audit
         env:
           # modrot queries the GitHub API to detect archived dependencies.

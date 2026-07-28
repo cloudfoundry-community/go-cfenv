@@ -11,11 +11,17 @@ GH_ASSETS :=
 
 SECURITY_SCANS := govulncheck gosec gitleaks
 
+# Release notes come from the changelog.d fragments: `make tag` embeds the
+# assembled notes in the annotated tag body and `make publish` reads them
+# back with --notes-from-tag. Nothing is hand-edited at release time.
+TAG_NOTES_CMD := $(MAKE) --no-print-directory changelog-assemble
+
 include mk/help.mk
 include mk/version.mk
 include mk/bump.mk
 include mk/security.mk
 include mk/go-release.mk
+include mk/changelog.mk
 
 ##@ Build
 

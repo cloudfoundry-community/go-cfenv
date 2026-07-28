@@ -46,6 +46,19 @@ func main() {
 }
 ```
 
+### File-based service bindings
+
+Apps with the `file-based-vcap-services` feature enabled receive their
+bindings in the file named by `VCAP_SERVICES_FILE_PATH` rather than in
+`VCAP_SERVICES`, which Cloud Foundry then does not set at all. `cfenv.Current`
+reads whichever of the two the platform provides, so switching the feature on
+needs no application change beyond a version of this package that supports it.
+
+The `SERVICE_BINDING_ROOT` form of [RFC-0030](https://github.com/cloudfoundry/community/blob/main/toc/rfc/rfc-0030-add-support-for-file-based-service-binding.md)
+is not supported: those bindings follow the Kubernetes
+[servicebinding.io](https://servicebinding.io/) layout, which has no faithful
+translation into the `VCAP_SERVICES` shape this package exposes.
+
 ### Contributing
 
 Pull requests welcomed. Please run `make check` and `make audit` before

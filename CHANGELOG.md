@@ -1,3 +1,41 @@
+# v1.19.1
+
+No code changes. This release is repository and supply-chain tooling only;
+the library is byte-for-byte identical to v1.19.0.
+
+# Internal Changes/Improvements
+
+* OpenSSF Scorecard now actually runs.
+
+  The workflow referenced `ossf/scorecard-action@v2`. That action publishes
+  no floating major tag, so the reference never resolved and every run since
+  the workflow was added failed before starting — nothing was ever uploaded
+  to the code-scanning tab. Pinned to v2.4.4.
+
+* Dependabot's pinned-dependency guard now covers gomega.
+
+  It documented the x/net and x/text pins but omitted onsi/gomega, which is
+  held at v1.27.10 as the newest go1.18-compatible release. Dependabot duly
+  proposed v1.42.1, which declares `go 1.25.0` and would have broken the
+  declared floor.
+
+* Added CODE_OF_CONDUCT.md, CONTRIBUTING.md and SECURITY.md, taken from the
+  cloudfoundry and cloudfoundry-community org sources, so this repo points at
+  the same CFF vulnerability reporting address and CLA process as the rest of
+  the org.
+
+* README carries CI, CodeQL, Scorecard, Go version, release and license
+  badges. The Go Reference badge is removed. Go Report Card is deliberately
+  absent: that project is archived read-only and its site now serves only a
+  shutdown notice.
+
+# Compatibility
+
+No public API changes, and no changes to any `.go` file, `go.mod` or
+`go.sum`. Consumers have no reason to upgrade from v1.19.0.
+
+---
+
 # v1.19.0
 
 # Breaking Changes

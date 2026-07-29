@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  # Keeps the declared go 1.18 floor honest. Compile only: this leg runs an
+  # Keeps the declared go 1.25 floor honest. Compile only: this leg runs an
   # old toolchain deliberately, so no test, lint, or vulnerability scan runs
   # here — they would report that toolchain's stdlib advisories, which say
   # nothing about this code.
@@ -24,7 +24,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-go@v7
         with:
-          go-version: "1.18"
+          go-version: "1.25"
       - run: go build ./...
 
   test:

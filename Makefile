@@ -11,6 +11,8 @@ GH_ASSETS :=
 
 SECURITY_SCANS := govulncheck gosec gitleaks
 
+FUZZTIME ?= 30s
+
 # Release notes come from the changelog.d fragments: `make tag` embeds the
 # assembled notes in the annotated tag body and `make publish` reads them
 # back with --notes-from-tag. Nothing is hand-edited at release time.
@@ -38,6 +40,13 @@ test: ## Run tests
 .PHONY: test-race
 test-race: ## Run tests with the race detector
 	go test -race ./...
+
+# `make test` already runs the seed corpus, as Go fuzz targets double as
+# ordinary tests. This target is for actually searching: raise FUZZTIME
+# when chasing something.
+.PHONY: fuzz
+fuzz: ## Fuzz the VCAP_APPLICATION/VCAP_SERVICES parser (FUZZTIME=30s)
+	go test -run '^$$' -fuzz FuzzNew -fuzztime $(FUZZTIME) .
 
 .PHONY: cover
 cover: ## Run tests and report coverage

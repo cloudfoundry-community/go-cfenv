@@ -3,6 +3,7 @@
 [![CI](https://github.com/cloudfoundry-community/go-cfenv/actions/workflows/ci.yml/badge.svg)](https://github.com/cloudfoundry-community/go-cfenv/actions/workflows/ci.yml)
 [![CodeQL](https://img.shields.io/github/actions/workflow/status/cloudfoundry-community/go-cfenv/codeql.yml?label=CodeQL)](https://github.com/cloudfoundry-community/go-cfenv/security/code-scanning)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/cloudfoundry-community/go-cfenv/badge)](https://scorecard.dev/viewer/?uri=github.com/cloudfoundry-community/go-cfenv)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13896/badge)](https://www.bestpractices.dev/projects/13896)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/cloudfoundry-community/go-cfenv)](go.mod)
 [![Latest Release](https://img.shields.io/github/v/release/cloudfoundry-community/go-cfenv)](https://github.com/cloudfoundry-community/go-cfenv/releases)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)

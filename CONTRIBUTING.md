@@ -19,6 +19,22 @@ If you’d like to have someone review the agreement before signing, you may dow
 - [Individual Contributor License Agreement](https://www.cloudfoundry.org/wp-content/uploads/icla.pdf)
 - [Corporate Contributor License Agreement](https://www.cloudfoundry.org/wp-content/uploads/ccla.pdf)
 
+**Testing policy**
+
+New functionality must arrive with tests covering it, and a bug fix must arrive
+with a test that fails without the fix. That second half matters more than it
+sounds: a test written after the fix proves only that the code does what it
+does, never that it catches the bug.
+
+`make check` and `make test-race` must both pass before a pull request is
+merged, and CI enforces both on every pull request. Run `make cover` to see
+where a change leaves coverage.
+
+Parsing changes deserve a look at `make fuzz` as well. `VCAP_APPLICATION` and
+`VCAP_SERVICES` come from the platform and from bound service brokers rather
+than from the application, so this package is a trust boundary: it must return
+an error or a value for any input, and never panic.
+
 **Interim versions**
 
 Work is reviewable between releases, not only at release time. Every change

@@ -1,0 +1,2 @@
+[Chores]
+- Re-vendored `mk/bump.mk`, which no longer produces a prerelease that sorts before the release it follows. Applying a label to a final version gave `v1.23.0-dev.1` after `v1.23.0` — older than its own release, and unselectable by any resolver. The core now advances first, by `BUMP_PRERELEASE_STEP` (default `minor`, which matches this project's cadence), so `make bump dev` yields `v1.24.0-dev.1`. This is what lets interim versions be published for review between releases, satisfying the OpenSSF Best Practices `repo_interim` criterion. (#39)

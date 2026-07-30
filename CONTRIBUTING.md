@@ -19,6 +19,27 @@ If you’d like to have someone review the agreement before signing, you may dow
 - [Individual Contributor License Agreement](https://www.cloudfoundry.org/wp-content/uploads/icla.pdf)
 - [Corporate Contributor License Agreement](https://www.cloudfoundry.org/wp-content/uploads/ccla.pdf)
 
+**Interim versions**
+
+Work is reviewable between releases, not only at release time. Every change
+lands on `master` as its own commit through a pull request, and interim
+versions are tagged as `dev` prereleases so reviewers have something citable
+to build and test against:
+
+```bash
+make bump dev                              # v1.23.0 -> v1.24.0-dev.1
+git push origin refs/tags/v1.24.0-dev.1
+make bump dev                              # -dev.1  -> -dev.2
+make bump final                            # -dev.2  -> v1.24.0, ready to release
+```
+
+The prerelease is derived from the *next* release, not the last one. Semver
+orders a prerelease before its own release, so tagging `v1.23.0-dev.1` after
+`v1.23.0` would produce an interim version older than the release it follows,
+which no resolver would select. Which component advances is
+`BUMP_PRERELEASE_STEP` in `mk/bump.mk`; this project releases minor versions,
+which is the default.
+
 **Where can I reach out to the team?**
 
 - _Want to report concerns/bugs?_ Create an issue on the affected repo.

@@ -6,12 +6,29 @@
 #   make bump patch     x.y.z -> x.y.(z+1), prerelease stripped
 #   make bump <label>   increment '<label>.N' prerelease counter, or
 #                       start '<label>.1' when coming from a different
-#                       label (or none). Labels come from BUMP_LABELS.
+#                       label. Labels come from BUMP_LABELS. From a
+#                       FINAL version the core advances first — see
+#                       BUMP_PRERELEASE_STEP.
 #   make bump final     strip the prerelease (x.y.z-rc.2 -> x.y.z)
 #
 # Settings:
 #   BUMP_LABELS        Prerelease labels usable as bump modifiers.
 #                      Default: dev alpha beta rc
+#   BUMP_PRERELEASE_STEP
+#                      Which core component advances when a label is
+#                      applied to a FINAL version: major, minor or patch.
+#                      Default: minor.
+#
+#                      Semver orders a prerelease BEFORE its own release,
+#                      so 1.2.3 -> 1.2.3-dev.1 would be a version older
+#                      than the release it follows: unreachable, and a
+#                      Go module proxy would never select it. The label
+#                      therefore has to target a later core. Set this to
+#                      whatever the project's usual release step is, so
+#                      `bump final` lands on the number actually wanted:
+#                        BUMP_PRERELEASE_STEP := patch
+#                      Only applies coming from a final version; counter
+#                      advances and label switches leave the core alone.
 #   BUMP_BASE_CMD      Command printing the persisted CURRENT version
 #                      (not version.mk's "next release" resolution —
 #                      bumping that would double-increment). Default:
@@ -39,6 +56,7 @@
 _HIDE ?= _
 
 BUMP_LABELS       ?= dev alpha beta rc
+BUMP_PRERELEASE_STEP ?= minor
 # Last --sort key is primary: creation date desc, version-aware refname
 # desc as the same-second tiebreak.
 BUMP_BASE_CMD     ?= git tag --merged HEAD --sort=-v:refname --sort=-creatordate 2>/dev/null | head -n 1
@@ -80,6 +98,14 @@ bump:
 				echo "Already a final version: $$prefix$$base" >&2; exit 1; \
 			fi; pre= ;; \
 		*) \
+			if [ -z "$$pre" ]; then \
+				case "$(BUMP_PRERELEASE_STEP)" in \
+					major) maj=$$((maj + 1)); min=0; pat=0 ;; \
+					minor) min=$$((min + 1)); pat=0 ;; \
+					patch) pat=$$((pat + 1)) ;; \
+					*) echo "BUMP_PRERELEASE_STEP must be major, minor or patch, not '$(BUMP_PRERELEASE_STEP)'" >&2; exit 1 ;; \
+				esac; \
+			fi; \
 			case "$$pre" in \
 				"$$mod".*) n=$${pre#"$$mod".}; \
 					case "$$n" in *[!0-9]*|'') n=0 ;; esac; \

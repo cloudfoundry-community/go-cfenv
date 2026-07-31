@@ -96,8 +96,12 @@ $(foreach target,$(TARGETS),$(eval $(call $(_HIDE)release_target_impl,$(word 1,$
 
 # ── Release lifecycle (tag → publish / unpublish → untag) ─────
 # Settings:
-#   TAG          Release tag. Default: the version with build metadata
-#                stripped — tags are clean semver (vX.Y.Z[-prerelease]).
+#   TAG          Release tag. Explicitly set, it applies to every verb.
+#                Unset, each verb resolves what its intent needs: tag
+#                derives the NEXT version (build metadata stripped —
+#                tags are clean semver); publish takes the nearest
+#                EXISTING tag; untag/unpublish refuse to guess and
+#                require TAG= on the command line.
 #   TAG_REMOTE   Remote for tag/untag. Default: origin
 #   DRAFT        DRAFT=yes publishes a draft release.
 #   NOTES        Notes file for publish. Default: gh --generate-notes.
@@ -123,7 +127,13 @@ $(foreach target,$(TARGETS),$(eval $(call $(_HIDE)release_target_impl,$(word 1,$
 # gets fragment-derived notes with no extra arguments, and a repo using
 # neither is unaffected.
 
-TAG           ?= v$($(_HIDE)SEMVER_NOMETA)
+# TAG_PREFIX selects the tag naming scheme. 'v' is the historical default.
+# Set 'v-' in repos whose major version has outrun their Go module path:
+# Go version-parses a 'vN.Y.Z' tag and refuses it when N>=2 without a
+# matching '/vN' module path, but never version-parses 'v-N.Y.Z', so that
+# form stays resolvable as a `go get` revision. version.mk parses both.
+TAG_PREFIX    ?= v
+TAG           ?=
 TAG_REMOTE    ?= origin
 DRAFT         ?=
 NOTES         ?=
@@ -133,32 +143,53 @@ GH_ASSETS     ?= $(RELEASE_ROOT)/$(PROJECT)-*
 # Prefix that turns state-changing commands into echoes under DRYRUN=yes
 $(_HIDE)DRY := $(if $(filter yes,$(DRYRUN)),@echo "DRYRUN:" )
 
+# Per-verb tag resolution. tag CREATES the next release, so its default
+# derives the next version. publish operates on a tag that already
+# EXISTS — deriving "next" there is always one release ahead: the moment
+# tag has run, next-version points past the tag just created, and a bare
+# `make tag && make publish` aborts on --verify-tag having published
+# nothing. So publish defaults to the nearest existing tag instead,
+# resolved at recipe time (kept lazy) so it also sees a tag created
+# earlier in the same invocation. Both stay recursive on purpose — see
+# version.mk on why := would freeze pre-bump values.
+$(_HIDE)NEXT_TAG    = $(TAG_PREFIX)$($(_HIDE)SEMVER_NOMETA)
+$(_HIDE)LAST_TAG    = $(shell git describe --tags --abbrev=0 2>/dev/null)
+$(_HIDE)CREATE_TAG  = $(or $(TAG),$($(_HIDE)NEXT_TAG))
+$(_HIDE)PUBLISH_TAG = $(or $(TAG),$($(_HIDE)LAST_TAG))
+
 .PHONY: tag untag publish unpublish
 
 tag:
-	@case "$(TAG)" in v[0-9]*.[0-9]*.[0-9]*) ;; *) echo "ERROR: '$(TAG)' does not look like a release tag (vX.Y.Z[-prerelease])" >&2; exit 1;; esac
+	@case "$($(_HIDE)CREATE_TAG)" in v[0-9]*.[0-9]*.[0-9]*) ;; *) echo "ERROR: '$($(_HIDE)CREATE_TAG)' does not look like a release tag (vX.Y.Z[-prerelease])" >&2; exit 1;; esac
 ifeq ($(strip $(TAG_NOTES_CMD)),)
-	$($(_HIDE)DRY)git tag -a "$(TAG)" -m "Release $(TAG)"
+	$($(_HIDE)DRY)git tag -a "$($(_HIDE)CREATE_TAG)" -m "Release $($(_HIDE)CREATE_TAG)"
 else
 	@body=$$($(TAG_NOTES_CMD)) || { echo "ERROR: TAG_NOTES_CMD failed - refusing to tag" >&2; exit 1; }; \
 	if [ -z "$$body" ]; then \
-		echo "ERROR: TAG_NOTES_CMD produced no output - refusing to tag $(TAG) with empty release notes." >&2; \
+		echo "ERROR: TAG_NOTES_CMD produced no output - refusing to tag $($(_HIDE)CREATE_TAG) with empty release notes." >&2; \
 		echo "       Add a fragment (make changelog-new), or unset TAG_NOTES_CMD for an untitled release." >&2; \
 		exit 1; \
 	fi; \
 	$(if $(filter yes,$(DRYRUN)), \
-		printf 'DRYRUN: git tag -a %s -F - <<EOF\n%s\nEOF\n' "$(TAG)" "$$body", \
-		printf '%s\n\n%s\n' "Release $(TAG)" "$$body" | git tag -a "$(TAG)" -F -)
+		printf 'DRYRUN: git tag -a %s -F - <<EOF\n%s\nEOF\n' "$($(_HIDE)CREATE_TAG)" "$$body", \
+		printf '%s\n\n%s\n' "Release $($(_HIDE)CREATE_TAG)" "$$body" | git tag -a "$($(_HIDE)CREATE_TAG)" -F -)
 endif
-	$($(_HIDE)DRY)git push $(TAG_REMOTE) "refs/tags/$(TAG)"
+	$($(_HIDE)DRY)git push $(TAG_REMOTE) "refs/tags/$($(_HIDE)CREATE_TAG)"
 
+# Deletion verbs never guess: "whatever is newest" as a default is how a
+# typo removes the wrong release. Both demand an explicit TAG.
 untag:
+	@[ -n "$(TAG)" ] || { echo "ERROR: untag deletes a tag - name it: make untag TAG=vX.Y.Z" >&2; exit 1; }
 	@echo "Deleting tag $(TAG) locally and on $(TAG_REMOTE)..."
 	-$($(_HIDE)DRY)git tag -d "$(TAG)"
 	$($(_HIDE)DRY)git push $(TAG_REMOTE) --delete "refs/tags/$(TAG)"
 
 publish:
-	@TAG="$(TAG)"; \
+	@TAG="$($(_HIDE)PUBLISH_TAG)"; \
+	if [ -z "$$TAG" ]; then \
+		echo "ERROR: no tag to publish - create one with 'make tag' or pass TAG=vX.Y.Z" >&2; \
+		exit 1; \
+	fi; \
 	PRERELEASE=""; case "$$TAG" in *-alpha*|*-beta*|*-rc*) PRERELEASE="--prerelease";; esac; \
 	NOTESARG="--generate-notes"; \
 	$(if $(NOTES),NOTESARG="--notes-file $(NOTES)",\
@@ -169,6 +200,7 @@ publish:
 	$(if $(filter yes,$(DRYRUN)),echo "DRYRUN: $$*",echo "+ $$*"; "$$@")
 
 unpublish:
+	@[ -n "$(TAG)" ] || { echo "ERROR: unpublish deletes a release - name it: make unpublish TAG=vX.Y.Z" >&2; exit 1; }
 	@echo "Release to delete from GitHub:"
 	@gh release view "$(TAG)" --json tagName,name,isDraft,assets \
 		--jq '"  " + .tagName + "  (" + .name + ")" + (if .isDraft then "  [draft]" else "" end), (.assets[] | "    " + .name)'

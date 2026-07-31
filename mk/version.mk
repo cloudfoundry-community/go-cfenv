@@ -3,7 +3,7 @@
 # Drop this file into a repo unchanged and `include` it. Per-repo settings:
 #   VERSION       Override the version string entirely (user-settable).
 #   VERSION_CMD   Shell command that prints the version string. Default:
-#                 nearest git tag, leading 'v' stripped, patch incremented
+#                 nearest git tag, leading 'v' or 'v-' stripped, patch incremented
 #                 ("the next release"). Repos with their own source set it
 #                 before or after the include, e.g.:
 #                   VERSION_CMD := node -p "require('./package.json').version"
@@ -32,11 +32,18 @@
 _HIDE ?= _
 
 # ── Version ───────────────────────────────────────────────────
-# Default source: nearest tag, 'v' stripped, patch+1 ("next release").
+# Default source: nearest tag, prefix stripped, patch+1 ("next release").
 # Only plain x.y.z tags qualify; a prerelease/buildmeta tag produces no
 # output and falls through to 0.0.0-unknown — set VERSION or VERSION_CMD
 # for anything richer.
-VERSION_CMD ?= git describe --tags --abbrev=0 2>/dev/null | sed -e 's/^v//' | awk -F. 'NF==3 && $$3 ~ /^[0-9]+$$/ {print $$1"."$$2"."$$3+1}'
+#
+# Both 'vX.Y.Z' and 'v-X.Y.Z' are accepted. The 'v-' form exists because Go
+# refuses to resolve a 'vN.Y.Z' tag (N>=2) unless the module path carries a
+# matching '/vN' suffix; a non-semver tag name sidesteps that rule and stays
+# usable as a `go get` revision. Strip 'v-' before 'v' — reversed, the 'v'
+# rule eats the prefix and leaves a leading '-', which later reads as a
+# semver prerelease separator.
+VERSION_CMD ?= git describe --tags --abbrev=0 2>/dev/null | sed -e 's/^v-//' -e 's/^v//' | awk -F. 'NF==3 && $$3 ~ /^[0-9]+$$/ {print $$1"."$$2"."$$3+1}'
 
 # Lazy (=/?=) rather than immediate (:=) so consumers re-evaluate at recipe
 # execution time. Important for chains like `make bump dev build ...` where
@@ -46,10 +53,12 @@ VERSION_CMD ?= git describe --tags --abbrev=0 2>/dev/null | sed -e 's/^v//' | aw
 # input; SEMVER_* are the internal canonical values derived from it.
 VERSION ?= $(shell v=$$($(VERSION_CMD)); echo "$${v:-0.0.0-unknown}")
 
-# Strip leading 'v' for parsing; remember it so SEMVER_VERSION reassembles
-# byte-identical to the input.
-$(_HIDE)SEMVER_IN     = $(patsubst v%,%,$(VERSION))
-$(_HIDE)SEMVER_PREFIX = $(if $(filter v%,$(VERSION)),v,)
+# Strip the leading 'v' or 'v-' for parsing; remember which one so
+# SEMVER_VERSION reassembles byte-identical to the input. Both orderings
+# below test 'v-' first: 'v%' also matches a 'v-' input, so checking it
+# first would misclassify 'v-1.2.3' as prefix 'v' and leave '-1.2.3'.
+$(_HIDE)SEMVER_IN     = $(patsubst v%,%,$(patsubst v-%,%,$(VERSION)))
+$(_HIDE)SEMVER_PREFIX = $(if $(filter v-%,$(VERSION)),v-,$(if $(filter v%,$(VERSION)),v,))
 
 # Split buildmeta off first (everything after '+'), then prerelease
 # (everything after the first '-' of what remains), leaving the x.y.z core.

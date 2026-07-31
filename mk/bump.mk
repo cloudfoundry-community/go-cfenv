@@ -29,6 +29,10 @@
 #                        BUMP_PRERELEASE_STEP := patch
 #                      Only applies coming from a final version; counter
 #                      advances and label switches leave the core alone.
+#   BUMP_TAG_MATCH     Glob selecting the tag family to bump from, and it
+#                      must select exactly one family — see the note at
+#                      the definition. Default: v[0-9]*
+#                      Repos tagging v-X.Y.Z set: v-[0-9]*
 #   BUMP_BASE_CMD      Command printing the persisted CURRENT version
 #                      (not version.mk's "next release" resolution —
 #                      bumping that would double-increment). Default:
@@ -37,7 +41,10 @@
 #                      of bumps on one commit (bump dev, bump dev)
 #                      advance correctly, which `git describe` cannot
 #                      do with several tags on the same commit. A
-#                      leading 'v' is preserved onto the new version.
+#                      leading 'v' or 'v-' is preserved onto the new
+#                      version; 'v-' is matched first, since 'v*' also
+#                      matches a 'v-' base and would leave a stray '-'
+#                      that then reads as a prerelease separator.
 #                      No tag at all bumps from 0.0.0. File-versioned
 #                      repos point this at their file, e.g.:
 #                        BUMP_BASE_CMD := cat VERSION
@@ -57,9 +64,29 @@ _HIDE ?= _
 
 BUMP_LABELS       ?= dev alpha beta rc
 BUMP_PRERELEASE_STEP ?= minor
+# Glob selecting the tag family this repo releases under. The candidate
+# list must hold ONE family, because --sort=v:refname is versioncmp over
+# the whole refname -- a natural-order string compare, not a semver one.
+# It never strips the prefix, so it groups by prefix byte before it ever
+# compares versions: every 'v*' outranks every 'v-*', and 'v-3.0.0' sorts
+# below 'v2.0.1'. It also ranks a prerelease ABOVE its release unless
+# versionsort.prereleaseSuffix is configured.
+#
+# That only decides ties, since creatordate is primary -- but ties are
+# routine: a lightweight tag has no creation date of its own, so it
+# inherits the commit's, and every lightweight tag on one commit ties.
+# A repo migrating to 'v-' typically backfills 'v-X.Y.Z' beside the
+# legacy 'vX.Y.Z' on the same commit, which is exactly that case: the
+# tiebreak picks the legacy tag and the next bump silently lands back on
+# a tag Go refuses to resolve.
+#
+# Repos on the v- scheme set:  BUMP_TAG_MATCH := v-[0-9]*
+# Left at the default there, no tag matches and the bump starts from
+# 0.0.0 -- wrong, but loudly wrong, which beats the silent wrong answer.
+BUMP_TAG_MATCH    ?= v[0-9]*
 # Last --sort key is primary: creation date desc, version-aware refname
 # desc as the same-second tiebreak.
-BUMP_BASE_CMD     ?= git tag --merged HEAD --sort=-v:refname --sort=-creatordate 2>/dev/null | head -n 1
+BUMP_BASE_CMD     ?= git tag --merged HEAD --sort=-v:refname --sort=-creatordate '$(BUMP_TAG_MATCH)' 2>/dev/null | head -n 1
 VERSION_WRITE_CMD ?= git tag -a -m Bumped
 
 $(_HIDE)BUMP_MOD := $(filter major minor patch final $(BUMP_LABELS),$(MAKECMDGOALS))
@@ -80,7 +107,10 @@ bump:
 		exit 1; \
 	fi
 	@base=$$($(BUMP_BASE_CMD)); base=$${base:-0.0.0}; \
-	prefix=; case "$$base" in v*) prefix=v; base=$${base#v} ;; esac; \
+	prefix=; case "$$base" in \
+		v-*) prefix=v-; base=$${base#v-} ;; \
+		v*)  prefix=v;  base=$${base#v}  ;; \
+	esac; \
 	base=$${base%%+*}; \
 	core=$${base%%-*}; \
 	pre=; case "$$base" in *-*) pre=$${base#*-} ;; esac; \

@@ -1,4 +1,9 @@
 version: 2
+# Both ecosystems prefix their commit subjects with `chore(deps)`.
+# mk/changelog.mk finds a release window's dependency bumps by grepping
+# the commit log for CHANGELOG_DEPS_GREP, which defaults to that prefix;
+# without it `make changelog-deps` reports zero bumps and they silently
+# miss the release notes. If the prefix changes here, change it there.
 updates:
   # Go modules. Nothing is held back any more: the go directive is 1.25.0,
   # which is what x/net, x/text and gomega each require, so Dependabot PRs
@@ -12,6 +17,8 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
 
   # Workflow actions do not update themselves. They are pinned to commit
   # SHAs, which makes every upstream release an update rather than only
@@ -22,6 +29,8 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
     groups:
       actions:
         patterns: ["*"]

@@ -86,7 +86,8 @@ jobs:
         run: |
           make install-gitleaks
           echo "$GITHUB_WORKSPACE/bin" >> "$GITHUB_PATH"
-      - run: make audit
+      # Everything `make audit` runs except codeql, which codeql.yml covers.
+      - run: make security modrot
         env:
           # modrot queries the GitHub API to detect archived dependencies.
           # Without a token it cannot authenticate and the target fails.

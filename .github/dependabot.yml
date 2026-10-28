@@ -5,9 +5,9 @@ version: 2
 # without it `make changelog-deps` reports zero bumps and they silently
 # miss the release notes. If the prefix changes here, change it there.
 updates:
-  # Go modules. Nothing is held back any more: the go directive is 1.25.0,
-  # which is what x/net, x/text and gomega each require, so Dependabot PRs
-  # for them can be taken on their merits.
+  # Go modules. Nothing is held back any more: the go directive is 1.26.0,
+  # which is what x/net and x/text require (gomega needs only 1.25.0), so
+  # Dependabot PRs for them can be taken on their merits.
   #
   # A dependency that raises its own go directive above this floor is still
   # a breaking change for consumers, so check the `go` line in any proposed

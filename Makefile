@@ -96,5 +96,7 @@ check: fmt vet lint actionlint tidy ## Run all quality gates
 
 ##@ Security
 
+# codeql is a local-only addition: CI runs `make security modrot` and gets
+# CodeQL from codeql.yml, which uploads to code scanning.
 .PHONY: audit
-audit: security modrot ## Run every scanner, including the archived-dependency check
+audit: security modrot codeql ## Run every scanner, including the archived-dependency check and CodeQL

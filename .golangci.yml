@@ -62,7 +62,7 @@ linters:
   - godox # Detects usage of FIXME, TODO and other keywords inside comments. [fast]
   - goheader # Check if file header matches to pattern. [fast, auto-fix]
   - gomoddirectives # Manage the use of 'replace', 'retract', and 'excludes' directives in go.mod. [fast]
-  - gomodguard # Allow and blocklist linter for direct Go module dependencies. This is different from depguard where there are different block types for example version constraints and module recommendations. [fast]
+  - gomodguard_v2 # Allow and blocklist linter for direct Go module dependencies. This is different from depguard where there are different block types for example version constraints and module recommendations. [fast]
   - goprintffuncname # Checks that printf-like functions are named with `f` at the end. [fast]
   - gosec # Inspects source code for security problems.
   - gosmopolitan # Report certain i18n/l10n anti-patterns in your Go codebase.
